@@ -1,0 +1,561 @@
+2026-03-12 12:36:12.753 [main] INFO  c.s.f.FundAgentApplicationTests - Starting FundAgentApplicationTests using Java 20.0.1 with PID 14172 (started by dudu in D:\Programming\FundAgent)
+2026-03-12 12:36:12.758 [main] DEBUG c.s.f.FundAgentApplicationTests - Running with Spring Boot v3.2.5, Spring v6.1.6
+2026-03-12 12:36:12.758 [main] INFO  c.s.f.FundAgentApplicationTests - No active profile set, falling back to 1 default profile: "default"
+2026-03-12 12:36:14.198 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-03-12 12:36:14.402 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 189 ms. Found 7 JPA repository interfaces.
+2026-03-12 12:36:16.258 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-03-12 12:36:16.301 [main] INFO  com.zaxxer.hikari.HikariDataSource - FundAgentHikariCP - Starting...
+2026-03-12 12:36:16.488 [main] INFO  com.zaxxer.hikari.pool.HikariPool - FundAgentHikariCP - Added connection com.mysql.cj.jdbc.ConnectionImpl@36871e98
+2026-03-12 12:36:16.490 [main] INFO  com.zaxxer.hikari.HikariDataSource - FundAgentHikariCP - Start completed.
+2026-03-12 12:36:16.526 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-03-12 12:36:16.529 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2026-03-12 12:36:17.792 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-03-12 12:36:19.137 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-03-12 12:36:21.097 [main] INFO  c.s.f.s.impl.FundDataServiceImpl - FundDataService initialized with 1 data sources
+2026-03-12 12:36:21.352 [main] INFO  c.s.f.s.i.YieldCalculationServiceImpl - YieldCalculationService initialized
+2026-03-12 12:36:21.387 [main] INFO  c.s.f.s.i.StrategyDecisionEngineImpl - 开始加载策略规则配置...
+2026-03-12 12:36:21.388 [main] DEBUG c.s.f.s.i.StrategyDecisionEngineImpl - 加载默认规则: RULE_002 - 止盈规则
+2026-03-12 12:36:21.391 [main] DEBUG c.s.f.s.i.StrategyDecisionEngineImpl - 加载默认规则: RULE_003 - 高估卖出规则
+2026-03-12 12:36:21.391 [main] DEBUG c.s.f.s.i.StrategyDecisionEngineImpl - 加载默认规则: RULE_005 - 正常持有规则
+2026-03-12 12:36:21.391 [main] DEBUG c.s.f.s.i.StrategyDecisionEngineImpl - 加载默认规则: RULE_001 - 极端风险警报规则
+2026-03-12 12:36:21.391 [main] DEBUG c.s.f.s.i.StrategyDecisionEngineImpl - 加载默认规则: RULE_004 - 低估买入规则
+2026-03-12 12:36:21.391 [main] INFO  c.s.f.s.i.StrategyDecisionEngineImpl - 策略规则加载完成，共加载 5 条规则
+2026-03-12 12:36:21.392 [main] INFO  c.s.f.s.i.StrategyDecisionEngineImpl - 策略决策引擎初始化完成，版本: 1.0.0，加载规则: 5 条
+2026-03-12 12:36:21.795 [main] INFO  c.s.f.n.impl.NotificationServiceImpl - 邮件渠道已启用
+2026-03-12 12:36:21.797 [main] INFO  c.s.f.n.impl.NotificationServiceImpl - 企业微信渠道已启用
+2026-03-12 12:36:21.797 [main] INFO  c.s.f.n.impl.NotificationServiceImpl - 消息推送服务初始化完成，版本: 1.0.0，可用渠道: 2
+2026-03-12 12:36:22.305 [main] INFO  c.s.f.s.HolidayTaskScheduler - 2026 年节假日数据已存在，跳过同步...
+2026-03-12 12:36:22.306 [main] INFO  c.s.f.s.HolidayTaskScheduler - 2025 年节假日数据已存在，跳过同步...
+2026-03-12 12:36:22.309 [main] INFO  c.s.f.s.HolidayTaskScheduler - 2024 年节假日数据已存在，跳过同步...
+2026-03-12 12:36:24.401 [main] INFO  o.s.s.quartz.SchedulerFactoryBean - Starting Quartz Scheduler now
+2026-03-12 12:36:24.455 [main] INFO  c.s.f.FundAgentApplicationTests - Started FundAgentApplicationTests in 12.313 seconds (process running for 13.807)
+2026-03-12 12:36:24.465 [main] INFO  c.s.fundagent.FundAgentApplication - 🚀 基金理财智能 Agent 系统启动成功!
+2026-03-12 12:36:24.472 [main] INFO  c.s.fundagent.FundAgentApplication - 📊 系统信息:
+  启动时间: 2026-03-12 12:36:24
+  运行环境: default
+  服务地址: http://192.168.1.5:8080/api
+  主机名称: DUDU
+  Java版本: 20.0.1
+  进程ID: 14172
+
+2026-03-12 12:36:24.475 [main] INFO  c.s.fundagent.FundAgentApplication - 💾 缓存配置信息:
+=== 缓存统计信息 ===
+缓存名称: historyData
+  请求次数: 0
+  命中次数: 0
+  命中率: 100.00%
+  未命中次数: 0
+  加载成功次数: 0
+  加载失败次数: 0
+  总加载时间: 0 ns
+  回收次数: 0
+---
+缓存名称: yield
+  请求次数: 0
+  命中次数: 0
+  命中率: 100.00%
+  未命中次数: 0
+  加载成功次数: 0
+  加载失败次数: 0
+  总加载时间: 0 ns
+  回收次数: 0
+---
+缓存名称: fundInfo
+  请求次数: 0
+  命中次数: 0
+  命中率: 100.00%
+  未命中次数: 0
+  加载成功次数: 0
+  加载失败次数: 0
+  总加载时间: 0 ns
+  回收次数: 0
+---
+缓存名称: realTimeData
+  请求次数: 0
+  命中次数: 0
+  命中率: 100.00%
+  未命中次数: 0
+  加载成功次数: 0
+  加载失败次数: 0
+  总加载时间: 0 ns
+  回收次数: 0
+---
+缓存名称: strategy
+  请求次数: 0
+  命中次数: 0
+  命中率: 100.00%
+  未命中次数: 0
+  加载成功次数: 0
+  加载失败次数: 0
+  总加载时间: 0 ns
+  回收次数: 0
+---
+
+2026-03-12 12:36:24.475 [main] INFO  c.s.fundagent.FundAgentApplication - 🔧 Bean统计:
+  总Bean数量: 319
+  Web相关: 30
+  数据相关: 25
+  调度相关: 14
+  缓存相关: 7
+
+2026-03-12 12:36:24.475 [main] INFO  c.s.fundagent.FundAgentApplication - ✅ 系统初始化完成，等待任务调度...
+2026-03-12 12:36:25.183 [SpringApplicationShutdownHook] INFO  o.s.s.quartz.SchedulerFactoryBean - Shutting down Quartz Scheduler
+2026-03-12 12:36:25.184 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-03-12 12:36:25.188 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - FundAgentHikariCP - Shutdown initiated...
+2026-03-12 12:36:25.202 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - FundAgentHikariCP - Shutdown completed.
+2026-03-12 13:02:48.677 [main] INFO  c.s.f.FundAgentApplicationTests - Starting FundAgentApplicationTests using Java 20.0.1 with PID 31072 (started by dudu in D:\Programming\FundAgent)
+2026-03-12 13:02:48.678 [main] DEBUG c.s.f.FundAgentApplicationTests - Running with Spring Boot v3.2.5, Spring v6.1.6
+2026-03-12 13:02:48.679 [main] INFO  c.s.f.FundAgentApplicationTests - No active profile set, falling back to 1 default profile: "default"
+2026-03-12 13:02:50.312 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-03-12 13:02:50.469 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 149 ms. Found 7 JPA repository interfaces.
+2026-03-12 13:02:51.164 [main] WARN  o.s.w.c.s.GenericWebApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.CannotLoadBeanClassException: Error loading class [com.shxc.fundagent.controller.FundDataController] for bean with name 'fundDataController' defined in file [D:\Programming\FundAgent\target\classes\com\shxc\fundagent\controller\FundDataController.class]: problem with class file or dependent class
+2026-03-12 13:02:51.170 [main] INFO  o.s.b.a.l.ConditionEvaluationReportLogger - 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-03-12 13:02:51.213 [main] ERROR o.s.boot.SpringApplication - Application run failed
+org.springframework.beans.factory.CannotLoadBeanClassException: Error loading class [com.shxc.fundagent.controller.FundDataController] for bean with name 'fundDataController' defined in file [D:\Programming\FundAgent\target\classes\com\shxc\fundagent\controller\FundDataController.class]: problem with class file or dependent class
+	at org.springframework.beans.factory.support.AbstractBeanFactory.resolveBeanClass(AbstractBeanFactory.java:1548)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.determineTargetType(AbstractAutowireCapableBeanFactory.java:685)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.predictBeanType(AbstractAutowireCapableBeanFactory.java:653)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getType(AbstractBeanFactory.java:725)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.findAnnotationOnBean(DefaultListableBeanFactory.java:735)
+	at org.springframework.boot.sql.init.dependency.AnnotationDependsOnDatabaseInitializationDetector.detect(AnnotationDependsOnDatabaseInitializationDetector.java:36)
+	at org.springframework.boot.sql.init.dependency.DatabaseInitializationDependencyConfigurer$DependsOnDatabaseInitializationPostProcessor.detectDependsOnInitializationBeanNames(DatabaseInitializationDependencyConfigurer.java:152)
+	at org.springframework.boot.sql.init.dependency.DatabaseInitializationDependencyConfigurer$DependsOnDatabaseInitializationPostProcessor.postProcessBeanFactory(DatabaseInitializationDependencyConfigurer.java:115)
+	at org.springframework.context.support.PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(PostProcessorRegistrationDelegate.java:363)
+	at org.springframework.context.support.PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(PostProcessorRegistrationDelegate.java:197)
+	at org.springframework.context.support.AbstractApplicationContext.invokeBeanFactoryPostProcessors(AbstractApplicationContext.java:788)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:606)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:334)
+	at org.springframework.boot.test.context.SpringBootContextLoader.lambda$loadContext$3(SpringBootContextLoader.java:137)
+	at org.springframework.util.function.ThrowingSupplier.get(ThrowingSupplier.java:58)
+	at org.springframework.util.function.ThrowingSupplier.get(ThrowingSupplier.java:46)
+	at org.springframework.boot.SpringApplication.withHook(SpringApplication.java:1454)
+	at org.springframework.boot.test.context.SpringBootContextLoader$ContextLoaderHook.run(SpringBootContextLoader.java:553)
+	at org.springframework.boot.test.context.SpringBootContextLoader.loadContext(SpringBootContextLoader.java:137)
+	at org.springframework.boot.test.context.SpringBootContextLoader.loadContext(SpringBootContextLoader.java:108)
+	at org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate.loadContextInternal(DefaultCacheAwareContextLoaderDelegate.java:225)
+	at org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate.loadContext(DefaultCacheAwareContextLoaderDelegate.java:152)
+	at org.springframework.test.context.support.DefaultTestContext.getApplicationContext(DefaultTestContext.java:130)
+	at org.springframework.test.context.web.ServletTestExecutionListener.setUpRequestContextIfNecessary(ServletTestExecutionListener.java:191)
+	at org.springframework.test.context.web.ServletTestExecutionListener.prepareTestInstance(ServletTestExecutionListener.java:130)
+	at org.springframework.test.context.TestContextManager.prepareTestInstance(TestContextManager.java:260)
+	at org.springframework.test.context.junit.jupiter.SpringExtension.postProcessTestInstance(SpringExtension.java:163)
+	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.lambda$invokeTestInstancePostProcessors$10(ClassBasedTestDescriptor.java:378)
+	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.executeAndMaskThrowable(ClassBasedTestDescriptor.java:383)
+	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.lambda$invokeTestInstancePostProcessors$11(ClassBasedTestDescriptor.java:378)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.StreamSpliterators$WrappingSpliterator.forEachRemaining(StreamSpliterators.java:310)
+	at java.base/java.util.stream.Streams$ConcatSpliterator.forEachRemaining(Streams.java:735)
+	at java.base/java.util.stream.Streams$ConcatSpliterator.forEachRemaining(Streams.java:734)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.invokeTestInstancePostProcessors(ClassBasedTestDescriptor.java:377)
+	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.lambda$instantiateAndPostProcessTestInstance$6(ClassBasedTestDescriptor.java:290)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.instantiateAndPostProcessTestInstance(ClassBasedTestDescriptor.java:289)
+	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.lambda$testInstancesProvider$4(ClassBasedTestDescriptor.java:279)
+	at java.base/java.util.Optional.orElseGet(Optional.java:364)
+	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.lambda$testInstancesProvider$5(ClassBasedTestDescriptor.java:278)
+	at org.junit.jupiter.engine.execution.TestInstancesProvider.getTestInstances(TestInstancesProvider.java:31)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$prepare$0(TestMethodTestDescriptor.java:106)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.prepare(TestMethodTestDescriptor.java:105)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.prepare(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$prepare$2(NodeTestTask.java:123)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.prepare(NodeTestTask.java:123)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:90)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.SessionPerRequestLauncher.execute(SessionPerRequestLauncher.java:63)
+	at com.intellij.junit5.JUnit5IdeaTestRunner.startRunnerWithArgs(JUnit5IdeaTestRunner.java:57)
+	at com.intellij.rt.junit.IdeaTestRunner$Repeater$1.execute(IdeaTestRunner.java:38)
+	at com.intellij.rt.execution.junit.TestsRepeater.repeat(TestsRepeater.java:11)
+	at com.intellij.rt.junit.IdeaTestRunner$Repeater.startRunnerWithArgs(IdeaTestRunner.java:35)
+	at com.intellij.rt.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:232)
+	at com.intellij.rt.junit.JUnitStarter.main(JUnitStarter.java:55)
+Caused by: java.lang.UnsupportedClassVersionError: com/shxc/fundagent/controller/FundDataController has been compiled by a more recent version of the Java Runtime (class file version 65.0), this version of the Java Runtime only recognizes class file versions up to 64.0
+	at java.base/java.lang.ClassLoader.defineClass1(Native Method)
+	at java.base/java.lang.ClassLoader.defineClass(ClassLoader.java:1013)
+	at java.base/java.security.SecureClassLoader.defineClass(SecureClassLoader.java:150)
+	at java.base/jdk.internal.loader.BuiltinClassLoader.defineClass(BuiltinClassLoader.java:862)
+	at java.base/jdk.internal.loader.BuiltinClassLoader.findClassOnClassPathOrNull(BuiltinClassLoader.java:760)
+	at java.base/jdk.internal.loader.BuiltinClassLoader.loadClassOrNull(BuiltinClassLoader.java:681)
+	at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:639)
+	at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188)
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:521)
+	at java.base/java.lang.Class.forName0(Native Method)
+	at java.base/java.lang.Class.forName(Class.java:496)
+	at java.base/java.lang.Class.forName(Class.java:475)
+	at org.springframework.util.ClassUtils.forName(ClassUtils.java:304)
+	at org.springframework.beans.factory.support.AbstractBeanDefinition.resolveBeanClass(AbstractBeanDefinition.java:489)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doResolveBeanClass(AbstractBeanFactory.java:1613)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.resolveBeanClass(AbstractBeanFactory.java:1538)
+	... 95 common frames omitted
+2026-03-12 13:02:51.227 [main] WARN  o.s.test.context.TestContextManager - Caught exception while allowing TestExecutionListener [org.springframework.test.context.web.ServletTestExecutionListener] to prepare test instance [com.shxc.fundagent.FundAgentApplicationTests@1f884bd6]
+java.lang.IllegalStateException: Failed to load ApplicationContext for [WebMergedContextConfiguration@696b52bc testClass = com.shxc.fundagent.FundAgentApplicationTests, locations = [], classes = [com.shxc.fundagent.FundAgentApplication], contextInitializerClasses = [], activeProfiles = [], propertySourceDescriptors = [], propertySourceProperties = ["org.springframework.boot.test.context.SpringBootTestContextBootstrapper=true"], contextCustomizers = [org.springframework.boot.test.context.filter.ExcludeFilterContextCustomizer@3561c410, org.springframework.boot.test.json.DuplicateJsonObjectContextCustomizerFactory$DuplicateJsonObjectContextCustomizer@20f5281c, org.springframework.boot.test.mock.mockito.MockitoContextCustomizer@0, org.springframework.boot.test.web.client.TestRestTemplateContextCustomizer@74a6f9c1, org.springframework.boot.test.web.reactive.server.WebTestClientContextCustomizer@1838ccb8, org.springframework.boot.test.autoconfigure.actuate.observability.ObservabilityContextCustomizerFactory$DisableObservabilityContextCustomizer@1f, org.springframework.boot.test.autoconfigure.properties.PropertyMappingContextCustomizer@0, org.springframework.boot.test.autoconfigure.web.servlet.WebDriverContextCustomizer@1583741e, org.springframework.boot.test.context.SpringBootTestAnnotation@278ccf08], resourceBasePath = "src/main/webapp", contextLoader = org.springframework.boot.test.context.SpringBootContextLoader, parent = null]
+	at org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate.loadContext(DefaultCacheAwareContextLoaderDelegate.java:180)
+	at org.springframework.test.context.support.DefaultTestContext.getApplicationContext(DefaultTestContext.java:130)
+	at org.springframework.test.context.web.ServletTestExecutionListener.setUpRequestContextIfNecessary(ServletTestExecutionListener.java:191)
+	at org.springframework.test.context.web.ServletTestExecutionListener.prepareTestInstance(ServletTestExecutionListener.java:130)
+	at org.springframework.test.context.TestContextManager.prepareTestInstance(TestContextManager.java:260)
+	at org.springframework.test.context.junit.jupiter.SpringExtension.postProcessTestInstance(SpringExtension.java:163)
+	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.lambda$invokeTestInstancePostProcessors$10(ClassBasedTestDescriptor.java:378)
+	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.executeAndMaskThrowable(ClassBasedTestDescriptor.java:383)
+	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.lambda$invokeTestInstancePostProcessors$11(ClassBasedTestDescriptor.java:378)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$2$1.accept(ReferencePipeline.java:179)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1625)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.StreamSpliterators$WrappingSpliterator.forEachRemaining(StreamSpliterators.java:310)
+	at java.base/java.util.stream.Streams$ConcatSpliterator.forEachRemaining(Streams.java:735)
+	at java.base/java.util.stream.Streams$ConcatSpliterator.forEachRemaining(Streams.java:734)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.invokeTestInstancePostProcessors(ClassBasedTestDescriptor.java:377)
+	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.lambda$instantiateAndPostProcessTestInstance$6(ClassBasedTestDescriptor.java:290)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.instantiateAndPostProcessTestInstance(ClassBasedTestDescriptor.java:289)
+	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.lambda$testInstancesProvider$4(ClassBasedTestDescriptor.java:279)
+	at java.base/java.util.Optional.orElseGet(Optional.java:364)
+	at org.junit.jupiter.engine.descriptor.ClassBasedTestDescriptor.lambda$testInstancesProvider$5(ClassBasedTestDescriptor.java:278)
+	at org.junit.jupiter.engine.execution.TestInstancesProvider.getTestInstances(TestInstancesProvider.java:31)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.lambda$prepare$0(TestMethodTestDescriptor.java:106)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.prepare(TestMethodTestDescriptor.java:105)
+	at org.junit.jupiter.engine.descriptor.TestMethodTestDescriptor.prepare(TestMethodTestDescriptor.java:69)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$prepare$2(NodeTestTask.java:123)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.prepare(NodeTestTask.java:123)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:90)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.invokeAll(SameThreadHierarchicalTestExecutorService.java:41)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$6(NodeTestTask.java:155)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$8(NodeTestTask.java:141)
+	at org.junit.platform.engine.support.hierarchical.Node.around(Node.java:137)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.lambda$executeRecursively$9(NodeTestTask.java:139)
+	at org.junit.platform.engine.support.hierarchical.ThrowableCollector.execute(ThrowableCollector.java:73)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.executeRecursively(NodeTestTask.java:138)
+	at org.junit.platform.engine.support.hierarchical.NodeTestTask.execute(NodeTestTask.java:95)
+	at org.junit.platform.engine.support.hierarchical.SameThreadHierarchicalTestExecutorService.submit(SameThreadHierarchicalTestExecutorService.java:35)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestExecutor.execute(HierarchicalTestExecutor.java:57)
+	at org.junit.platform.engine.support.hierarchical.HierarchicalTestEngine.execute(HierarchicalTestEngine.java:54)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:198)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:169)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:93)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.lambda$execute$0(EngineExecutionOrchestrator.java:58)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.withInterceptedStreams(EngineExecutionOrchestrator.java:141)
+	at org.junit.platform.launcher.core.EngineExecutionOrchestrator.execute(EngineExecutionOrchestrator.java:57)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:103)
+	at org.junit.platform.launcher.core.DefaultLauncher.execute(DefaultLauncher.java:85)
+	at org.junit.platform.launcher.core.DelegatingLauncher.execute(DelegatingLauncher.java:47)
+	at org.junit.platform.launcher.core.SessionPerRequestLauncher.execute(SessionPerRequestLauncher.java:63)
+	at com.intellij.junit5.JUnit5IdeaTestRunner.startRunnerWithArgs(JUnit5IdeaTestRunner.java:57)
+	at com.intellij.rt.junit.IdeaTestRunner$Repeater$1.execute(IdeaTestRunner.java:38)
+	at com.intellij.rt.execution.junit.TestsRepeater.repeat(TestsRepeater.java:11)
+	at com.intellij.rt.junit.IdeaTestRunner$Repeater.startRunnerWithArgs(IdeaTestRunner.java:35)
+	at com.intellij.rt.junit.JUnitStarter.prepareStreamsAndStart(JUnitStarter.java:232)
+	at com.intellij.rt.junit.JUnitStarter.main(JUnitStarter.java:55)
+Caused by: org.springframework.beans.factory.CannotLoadBeanClassException: Error loading class [com.shxc.fundagent.controller.FundDataController] for bean with name 'fundDataController' defined in file [D:\Programming\FundAgent\target\classes\com\shxc\fundagent\controller\FundDataController.class]: problem with class file or dependent class
+	at org.springframework.beans.factory.support.AbstractBeanFactory.resolveBeanClass(AbstractBeanFactory.java:1548)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.determineTargetType(AbstractAutowireCapableBeanFactory.java:685)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.predictBeanType(AbstractAutowireCapableBeanFactory.java:653)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getType(AbstractBeanFactory.java:725)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.findAnnotationOnBean(DefaultListableBeanFactory.java:735)
+	at org.springframework.boot.sql.init.dependency.AnnotationDependsOnDatabaseInitializationDetector.detect(AnnotationDependsOnDatabaseInitializationDetector.java:36)
+	at org.springframework.boot.sql.init.dependency.DatabaseInitializationDependencyConfigurer$DependsOnDatabaseInitializationPostProcessor.detectDependsOnInitializationBeanNames(DatabaseInitializationDependencyConfigurer.java:152)
+	at org.springframework.boot.sql.init.dependency.DatabaseInitializationDependencyConfigurer$DependsOnDatabaseInitializationPostProcessor.postProcessBeanFactory(DatabaseInitializationDependencyConfigurer.java:115)
+	at org.springframework.context.support.PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(PostProcessorRegistrationDelegate.java:363)
+	at org.springframework.context.support.PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors(PostProcessorRegistrationDelegate.java:197)
+	at org.springframework.context.support.AbstractApplicationContext.invokeBeanFactoryPostProcessors(AbstractApplicationContext.java:788)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:606)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:334)
+	at org.springframework.boot.test.context.SpringBootContextLoader.lambda$loadContext$3(SpringBootContextLoader.java:137)
+	at org.springframework.util.function.ThrowingSupplier.get(ThrowingSupplier.java:58)
+	at org.springframework.util.function.ThrowingSupplier.get(ThrowingSupplier.java:46)
+	at org.springframework.boot.SpringApplication.withHook(SpringApplication.java:1454)
+	at org.springframework.boot.test.context.SpringBootContextLoader$ContextLoaderHook.run(SpringBootContextLoader.java:553)
+	at org.springframework.boot.test.context.SpringBootContextLoader.loadContext(SpringBootContextLoader.java:137)
+	at org.springframework.boot.test.context.SpringBootContextLoader.loadContext(SpringBootContextLoader.java:108)
+	at org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate.loadContextInternal(DefaultCacheAwareContextLoaderDelegate.java:225)
+	at org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate.loadContext(DefaultCacheAwareContextLoaderDelegate.java:152)
+	... 72 common frames omitted
+Caused by: java.lang.UnsupportedClassVersionError: com/shxc/fundagent/controller/FundDataController has been compiled by a more recent version of the Java Runtime (class file version 65.0), this version of the Java Runtime only recognizes class file versions up to 64.0
+	at java.base/java.lang.ClassLoader.defineClass1(Native Method)
+	at java.base/java.lang.ClassLoader.defineClass(ClassLoader.java:1013)
+	at java.base/java.security.SecureClassLoader.defineClass(SecureClassLoader.java:150)
+	at java.base/jdk.internal.loader.BuiltinClassLoader.defineClass(BuiltinClassLoader.java:862)
+	at java.base/jdk.internal.loader.BuiltinClassLoader.findClassOnClassPathOrNull(BuiltinClassLoader.java:760)
+	at java.base/jdk.internal.loader.BuiltinClassLoader.loadClassOrNull(BuiltinClassLoader.java:681)
+	at java.base/jdk.internal.loader.BuiltinClassLoader.loadClass(BuiltinClassLoader.java:639)
+	at java.base/jdk.internal.loader.ClassLoaders$AppClassLoader.loadClass(ClassLoaders.java:188)
+	at java.base/java.lang.ClassLoader.loadClass(ClassLoader.java:521)
+	at java.base/java.lang.Class.forName0(Native Method)
+	at java.base/java.lang.Class.forName(Class.java:496)
+	at java.base/java.lang.Class.forName(Class.java:475)
+	at org.springframework.util.ClassUtils.forName(ClassUtils.java:304)
+	at org.springframework.beans.factory.support.AbstractBeanDefinition.resolveBeanClass(AbstractBeanDefinition.java:489)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doResolveBeanClass(AbstractBeanFactory.java:1613)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.resolveBeanClass(AbstractBeanFactory.java:1538)
+	... 95 common frames omitted
+2026-03-12 13:06:48.330 [main] INFO  c.s.f.FundAgentApplicationTests - Starting FundAgentApplicationTests using Java 20.0.1 with PID 3220 (started by dudu in D:\Programming\FundAgent)
+2026-03-12 13:06:48.331 [main] DEBUG c.s.f.FundAgentApplicationTests - Running with Spring Boot v3.2.5, Spring v6.1.6
+2026-03-12 13:06:48.332 [main] INFO  c.s.f.FundAgentApplicationTests - No active profile set, falling back to 1 default profile: "default"
+2026-03-12 13:06:49.327 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-03-12 13:06:49.479 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 145 ms. Found 7 JPA repository interfaces.
+2026-03-12 13:06:51.144 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-03-12 13:06:51.172 [main] INFO  com.zaxxer.hikari.HikariDataSource - FundAgentHikariCP - Starting...
+2026-03-12 13:06:51.318 [main] INFO  com.zaxxer.hikari.pool.HikariPool - FundAgentHikariCP - Added connection com.mysql.cj.jdbc.ConnectionImpl@1ae9d0e4
+2026-03-12 13:06:51.320 [main] INFO  com.zaxxer.hikari.HikariDataSource - FundAgentHikariCP - Start completed.
+2026-03-12 13:06:51.345 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-03-12 13:06:51.345 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2026-03-12 13:06:52.299 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-03-12 13:06:53.165 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-03-12 13:06:54.483 [main] INFO  c.s.f.s.impl.FundDataServiceImpl - FundDataService initialized with 1 data sources
+2026-03-12 13:06:54.651 [main] INFO  c.s.f.s.i.YieldCalculationServiceImpl - YieldCalculationService initialized
+2026-03-12 13:06:54.674 [main] INFO  c.s.f.s.i.StrategyDecisionEngineImpl - 开始加载策略规则配置...
+2026-03-12 13:06:54.675 [main] DEBUG c.s.f.s.i.StrategyDecisionEngineImpl - 加载默认规则: RULE_004 - 低估买入规则
+2026-03-12 13:06:54.677 [main] DEBUG c.s.f.s.i.StrategyDecisionEngineImpl - 加载默认规则: RULE_005 - 正常持有规则
+2026-03-12 13:06:54.677 [main] DEBUG c.s.f.s.i.StrategyDecisionEngineImpl - 加载默认规则: RULE_001 - 极端风险警报规则
+2026-03-12 13:06:54.677 [main] DEBUG c.s.f.s.i.StrategyDecisionEngineImpl - 加载默认规则: RULE_003 - 高估卖出规则
+2026-03-12 13:06:54.677 [main] DEBUG c.s.f.s.i.StrategyDecisionEngineImpl - 加载默认规则: RULE_002 - 止盈规则
+2026-03-12 13:06:54.677 [main] INFO  c.s.f.s.i.StrategyDecisionEngineImpl - 策略规则加载完成，共加载 5 条规则
+2026-03-12 13:06:54.677 [main] INFO  c.s.f.s.i.StrategyDecisionEngineImpl - 策略决策引擎初始化完成，版本: 1.0.0，加载规则: 5 条
+2026-03-12 13:06:54.897 [main] INFO  c.s.f.n.impl.NotificationServiceImpl - 邮件渠道已启用
+2026-03-12 13:06:54.899 [main] INFO  c.s.f.n.impl.NotificationServiceImpl - 企业微信渠道已启用
+2026-03-12 13:06:54.899 [main] INFO  c.s.f.n.impl.NotificationServiceImpl - 消息推送服务初始化完成，版本: 1.0.0，可用渠道: 2
+2026-03-12 13:06:55.160 [main] INFO  c.s.f.s.HolidayTaskScheduler - 2026 年节假日数据已存在，跳过同步...
+2026-03-12 13:06:55.162 [main] INFO  c.s.f.s.HolidayTaskScheduler - 2025 年节假日数据已存在，跳过同步...
+2026-03-12 13:06:55.164 [main] INFO  c.s.f.s.HolidayTaskScheduler - 2024 年节假日数据已存在，跳过同步...
+2026-03-12 13:06:56.275 [main] INFO  o.s.s.quartz.SchedulerFactoryBean - Starting Quartz Scheduler now
+2026-03-12 13:06:56.307 [main] INFO  c.s.f.FundAgentApplicationTests - Started FundAgentApplicationTests in 8.435 seconds (process running for 9.585)
+2026-03-12 13:06:56.310 [main] INFO  c.s.fundagent.FundAgentApplication - 🚀 基金理财智能 Agent 系统启动成功!
+2026-03-12 13:06:56.316 [main] INFO  c.s.fundagent.FundAgentApplication - 📊 系统信息:
+  启动时间: 2026-03-12 13:06:56
+  运行环境: default
+  服务地址: http://192.168.1.5:8080/api
+  主机名称: DUDU
+  Java版本: 20.0.1
+  进程ID: 3220
+
+2026-03-12 13:06:56.318 [main] INFO  c.s.fundagent.FundAgentApplication - 💾 缓存配置信息:
+=== 缓存统计信息 ===
+缓存名称: historyData
+  请求次数: 0
+  命中次数: 0
+  命中率: 100.00%
+  未命中次数: 0
+  加载成功次数: 0
+  加载失败次数: 0
+  总加载时间: 0 ns
+  回收次数: 0
+---
+缓存名称: yield
+  请求次数: 0
+  命中次数: 0
+  命中率: 100.00%
+  未命中次数: 0
+  加载成功次数: 0
+  加载失败次数: 0
+  总加载时间: 0 ns
+  回收次数: 0
+---
+缓存名称: fundInfo
+  请求次数: 0
+  命中次数: 0
+  命中率: 100.00%
+  未命中次数: 0
+  加载成功次数: 0
+  加载失败次数: 0
+  总加载时间: 0 ns
+  回收次数: 0
+---
+缓存名称: realTimeData
+  请求次数: 0
+  命中次数: 0
+  命中率: 100.00%
+  未命中次数: 0
+  加载成功次数: 0
+  加载失败次数: 0
+  总加载时间: 0 ns
+  回收次数: 0
+---
+缓存名称: strategy
+  请求次数: 0
+  命中次数: 0
+  命中率: 100.00%
+  未命中次数: 0
+  加载成功次数: 0
+  加载失败次数: 0
+  总加载时间: 0 ns
+  回收次数: 0
+---
+
+2026-03-12 13:06:56.319 [main] INFO  c.s.fundagent.FundAgentApplication - 🔧 Bean统计:
+  总Bean数量: 319
+  Web相关: 30
+  数据相关: 25
+  调度相关: 14
+  缓存相关: 7
+
+2026-03-12 13:06:56.319 [main] INFO  c.s.fundagent.FundAgentApplication - ✅ 系统初始化完成，等待任务调度...
+2026-03-12 13:08:25.047 [FundAgentHikariCP housekeeper] WARN  com.zaxxer.hikari.pool.HikariPool - FundAgentHikariCP - Thread starvation or clock leap detected (housekeeper delta=1m33s617ms877µs100ns).
+2026-03-12 13:08:25.132 [SpringApplicationShutdownHook] INFO  o.s.s.quartz.SchedulerFactoryBean - Shutting down Quartz Scheduler
+2026-03-12 13:08:25.133 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-03-12 13:08:25.135 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - FundAgentHikariCP - Shutdown initiated...
+2026-03-12 13:08:25.143 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - FundAgentHikariCP - Shutdown completed.
+2026-03-12 13:09:46.934 [main] INFO  c.s.f.FundAgentApplicationTests - Starting FundAgentApplicationTests using Java 20.0.1 with PID 30216 (started by dudu in D:\Programming\FundAgent)
+2026-03-12 13:09:46.935 [main] DEBUG c.s.f.FundAgentApplicationTests - Running with Spring Boot v3.2.5, Spring v6.1.6
+2026-03-12 13:09:46.936 [main] INFO  c.s.f.FundAgentApplicationTests - No active profile set, falling back to 1 default profile: "default"
+2026-03-12 13:09:47.915 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-03-12 13:09:48.059 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 137 ms. Found 7 JPA repository interfaces.
+2026-03-12 13:09:49.581 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-03-12 13:09:49.607 [main] INFO  com.zaxxer.hikari.HikariDataSource - FundAgentHikariCP - Starting...
+2026-03-12 13:09:49.765 [main] INFO  com.zaxxer.hikari.pool.HikariPool - FundAgentHikariCP - Added connection com.mysql.cj.jdbc.ConnectionImpl@30bbe83
+2026-03-12 13:09:49.769 [main] INFO  com.zaxxer.hikari.HikariDataSource - FundAgentHikariCP - Start completed.
+2026-03-12 13:09:49.800 [main] WARN  org.hibernate.orm.deprecation - HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-03-12 13:09:49.802 [main] WARN  org.hibernate.orm.deprecation - HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2026-03-12 13:09:50.767 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-03-12 13:09:51.379 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-03-12 13:09:52.698 [main] INFO  c.s.f.s.impl.FundDataServiceImpl - FundDataService initialized with 1 data sources
+2026-03-12 13:09:52.876 [main] INFO  c.s.f.s.i.YieldCalculationServiceImpl - YieldCalculationService initialized
+2026-03-12 13:09:52.899 [main] INFO  c.s.f.s.i.StrategyDecisionEngineImpl - 开始加载策略规则配置...
+2026-03-12 13:09:52.902 [main] DEBUG c.s.f.s.i.StrategyDecisionEngineImpl - 加载默认规则: RULE_005 - 正常持有规则
+2026-03-12 13:09:52.903 [main] DEBUG c.s.f.s.i.StrategyDecisionEngineImpl - 加载默认规则: RULE_001 - 极端风险警报规则
+2026-03-12 13:09:52.903 [main] DEBUG c.s.f.s.i.StrategyDecisionEngineImpl - 加载默认规则: RULE_004 - 低估买入规则
+2026-03-12 13:09:52.903 [main] DEBUG c.s.f.s.i.StrategyDecisionEngineImpl - 加载默认规则: RULE_002 - 止盈规则
+2026-03-12 13:09:52.903 [main] DEBUG c.s.f.s.i.StrategyDecisionEngineImpl - 加载默认规则: RULE_003 - 高估卖出规则
+2026-03-12 13:09:52.903 [main] INFO  c.s.f.s.i.StrategyDecisionEngineImpl - 策略规则加载完成，共加载 5 条规则
+2026-03-12 13:09:52.903 [main] INFO  c.s.f.s.i.StrategyDecisionEngineImpl - 策略决策引擎初始化完成，版本: 1.0.0，加载规则: 5 条
+2026-03-12 13:09:53.115 [main] INFO  c.s.f.n.impl.NotificationServiceImpl - 邮件渠道已启用
+2026-03-12 13:09:53.117 [main] INFO  c.s.f.n.impl.NotificationServiceImpl - 企业微信渠道已启用
+2026-03-12 13:09:53.118 [main] INFO  c.s.f.n.impl.NotificationServiceImpl - 消息推送服务初始化完成，版本: 1.0.0，可用渠道: 2
+2026-03-12 13:09:53.410 [main] INFO  c.s.f.s.HolidayTaskScheduler - 2026 年节假日数据已存在，跳过同步...
+2026-03-12 13:09:53.414 [main] INFO  c.s.f.s.HolidayTaskScheduler - 2025 年节假日数据已存在，跳过同步...
+2026-03-12 13:09:53.416 [main] INFO  c.s.f.s.HolidayTaskScheduler - 2024 年节假日数据已存在，跳过同步...
+2026-03-12 13:09:54.610 [main] INFO  o.s.s.quartz.SchedulerFactoryBean - Starting Quartz Scheduler now
+2026-03-12 13:09:54.636 [main] INFO  c.s.f.FundAgentApplicationTests - Started FundAgentApplicationTests in 8.19 seconds (process running for 9.415)
+2026-03-12 13:09:54.639 [main] INFO  c.s.fundagent.FundAgentApplication - 🚀 基金理财智能 Agent 系统启动成功!
+2026-03-12 13:09:54.642 [main] INFO  c.s.fundagent.FundAgentApplication - 📊 系统信息:
+  启动时间: 2026-03-12 13:09:54
+  运行环境: default
+  服务地址: http://192.168.1.5:8080/api
+  主机名称: DUDU
+  Java版本: 20.0.1
+  进程ID: 30216
+
+2026-03-12 13:09:54.645 [main] INFO  c.s.fundagent.FundAgentApplication - 💾 缓存配置信息:
+=== 缓存统计信息 ===
+缓存名称: historyData
+  请求次数: 0
+  命中次数: 0
+  命中率: 100.00%
+  未命中次数: 0
+  加载成功次数: 0
+  加载失败次数: 0
+  总加载时间: 0 ns
+  回收次数: 0
+---
+缓存名称: yield
+  请求次数: 0
+  命中次数: 0
+  命中率: 100.00%
+  未命中次数: 0
+  加载成功次数: 0
+  加载失败次数: 0
+  总加载时间: 0 ns
+  回收次数: 0
+---
+缓存名称: fundInfo
+  请求次数: 0
+  命中次数: 0
+  命中率: 100.00%
+  未命中次数: 0
+  加载成功次数: 0
+  加载失败次数: 0
+  总加载时间: 0 ns
+  回收次数: 0
+---
+缓存名称: realTimeData
+  请求次数: 0
+  命中次数: 0
+  命中率: 100.00%
+  未命中次数: 0
+  加载成功次数: 0
+  加载失败次数: 0
+  总加载时间: 0 ns
+  回收次数: 0
+---
+缓存名称: strategy
+  请求次数: 0
+  命中次数: 0
+  命中率: 100.00%
+  未命中次数: 0
+  加载成功次数: 0
+  加载失败次数: 0
+  总加载时间: 0 ns
+  回收次数: 0
+---
+
+2026-03-12 13:09:54.645 [main] INFO  c.s.fundagent.FundAgentApplication - 🔧 Bean统计:
+  总Bean数量: 319
+  Web相关: 30
+  数据相关: 25
+  调度相关: 14
+  缓存相关: 7
+
+2026-03-12 13:09:54.645 [main] INFO  c.s.fundagent.FundAgentApplication - ✅ 系统初始化完成，等待任务调度...
+2026-03-12 13:14:06.370 [FundAgentHikariCP housekeeper] WARN  com.zaxxer.hikari.pool.HikariPool - FundAgentHikariCP - Thread starvation or clock leap detected (housekeeper delta=3m34s906ms122µs300ns).
+2026-03-12 13:14:18.624 [SpringApplicationShutdownHook] INFO  o.s.s.quartz.SchedulerFactoryBean - Shutting down Quartz Scheduler
+2026-03-12 13:14:18.625 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-03-12 13:14:18.626 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - FundAgentHikariCP - Shutdown initiated...
+2026-03-12 13:14:18.630 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - FundAgentHikariCP - Shutdown completed.

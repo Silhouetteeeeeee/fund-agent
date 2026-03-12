@@ -1,0 +1,411 @@
+# 支付宝基金理财智能 Agent 系统配置文件
+# 版本：V1.0
+# 基于详细设计文档：DETAILED_DESIGN.md
+
+# ================ Spring 基础配置 ================
+spring:
+  application:
+    name: FundAgent
+    description: 支付宝基金理财智能 Agent 系统
+
+  # ================ 数据源配置 ================
+  datasource:
+    url: jdbc:mysql://localhost:3306/fundagent?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+    username: fundagent
+    password: Shxc@a123b123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-test-query: SELECT 1
+      pool-name: FundAgentHikariCP
+
+  # ================ JPA 配置 ================
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    show-sql: false
+    open-in-view: false
+
+  # ================ 缓存配置 ================
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=10m
+  redis:
+    host: localhost
+    port: 6379
+    password:
+    database: 0
+    timeout: 3000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+
+  # ================ 邮件配置 ================
+  mail:
+    host: smtp.163.com
+    port: 465
+    username: your-email@163.com
+    password: your-email-password
+    protocol: smtps
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            enable: true
+        debug: false
+
+  # ================ 定时任务配置 ================
+#  quartz:
+#    job-store-type: jdbc
+#    jdbc:
+#      initialize-schema: always
+#    properties:
+#      org:
+#        quartz:
+#          scheduler:
+#            instanceName: FundAgentScheduler
+#            instanceId: AUTO
+#          jobStore:
+#            class: org.quartz.impl.jdbcjobstore.JobStoreTX
+#            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+#            tablePrefix: QRTZ_
+#            isClustered: true
+#            clusterCheckinInterval: 20000
+#            useProperties: false
+#          threadPool:
+#            class: org.quartz.simpl.SimpleThreadPool
+#            threadCount: 10
+#            threadPriority: 5
+#            threadsInheritContextClassLoaderOfInitializingThread: true
+
+# ================ 基金数据采集配置 ================
+fund:
+  data:
+    # 天天基金网配置
+    tiantian:
+      base-url: https://fundgz.1234567.com.cn
+      history-base-url: https://fundf10.eastmoney.com
+      info-base-url: https://fund.eastmoney.com
+      timeout: 10000
+      rate-limit-per-minute: 60
+      enabled: true
+      priority: 1
+
+    # 备用数据源配置
+    backup:
+      enabled: false
+      priority: 2
+
+    # 数据采集策略
+    collection:
+      # 实时数据采集时间（交易日）
+      realtime-schedule: "0 0/10 9-15 * * MON-FRI"
+      # 收盘数据采集时间
+      closing-schedule: "0 30 15 * * MON-FRI"
+      # 历史数据同步时间
+      history-sync-schedule: "0 0 2 * * *"
+      # 数据清理时间（清理30天前的数据）
+      cleanup-schedule: "0 0 3 * * *"
+      # 重试策略
+      retry:
+        max-attempts: 3
+        backoff-delay: 5000
+        multiplier: 2
+
+# ================ 策略决策配置 ================
+strategy:
+  # 规则配置
+  rules:
+    extremeRisk:
+      enabled: true
+      priority: 1
+      conditions:
+        dailyChange: -4.0
+        weeklyChange: -8.0
+      action: "RISK_ALERT"
+      notification:
+        enabled: true
+        urgent: true
+
+    profitTaking:
+      enabled: true
+      priority: 2
+      conditions:
+        yieldRate: 30.0
+      action: "CLEAR"
+      notification:
+        enabled: true
+        urgent: true
+
+    overvalued:
+      enabled: true
+      priority: 3
+      conditions:
+        yieldRate: 20.0
+      action: "SELL"
+      notification:
+        enabled: true
+        urgent: false
+
+    undervalued:
+      enabled: true
+      priority: 4
+      conditions:
+        yieldRate: -15.0
+        dailyChange: -3.0
+      action: "BUY"
+      notification:
+        enabled: true
+        urgent: false
+
+    normal:
+      enabled: true
+      priority: 5
+      conditions:
+        yieldRateMin: -15.0
+        yieldRateMax: 15.0
+      action: "HOLD"
+      notification:
+        enabled: false
+
+  # 决策执行配置
+  execution:
+    enabled: true
+    # 决策执行时间（交易日收盘后）
+    schedule: "0 40 15 * * MON-FRI"
+    # 是否自动执行建议
+    auto-execute: false
+    # 执行前确认
+    require-confirmation: true
+    # 最小置信度（0-1）
+    min-confidence: 0.7
+
+# ================ 消息推送配置 ================
+notification:
+  # 微信配置
+  wechat:
+    enabled: false
+    type: "WECHAT_OFFICIAL_ACCOUNT"
+    app-id: ${WECHAT_APP_ID:}
+    app-secret: ${WECHAT_APP_SECRET:}
+    template-id: ${WECHAT_TEMPLATE_ID:}
+    recipients: []
+
+  # 企业微信配置
+  wecom:
+    enabled: true
+    type: "WECOM_ROBOT"
+    webhook: ${WECOM_WEBHOOK:https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=your-key}
+    mentioned-list: []  # 需要@的用户列表
+    mentioned-mobile-list: []  # 需要@的手机号列表
+
+  # 邮件配置
+  email:
+    enabled: true
+    smtp-host: ${spring.mail.host}
+    smtp-port: ${spring.mail.port}
+    username: ${spring.mail.username}
+    password: ${spring.mail.password}
+    from: ${spring.mail.username}
+    to: ["your-email@example.com"]
+    cc: []
+    bcc: []
+
+  # 推送策略
+  strategy:
+    # 实时提醒
+    realtime:
+      enabled: true
+      channels: ["WECOM", "EMAIL"]
+      delay: 0
+      retry: 3
+
+    # 每日报告
+    daily:
+      enabled: true
+      schedule: "0 0 16 * * MON-FRI"
+      channels: ["EMAIL", "WECOM"]
+      template: "daily-report"
+
+    # 每周报告
+    weekly:
+      enabled: true
+      schedule: "0 30 16 * * FRI"
+      channels: ["EMAIL"]
+      template: "weekly-report"
+
+    # 每月报告
+    monthly:
+      enabled: true
+      schedule: "0 0 17 L * ?"
+      channels: ["EMAIL"]
+      template: "monthly-report"
+
+# ================ 系统监控配置 ================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /manage
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      application: ${spring.application.name}
+
+# ================ 日志配置 ================
+logging:
+  level:
+    com.shxc.fundagent: DEBUG
+    org.springframework.web: WARN
+    org.hibernate: WARN
+    org.quartz: WARN
+  file:
+    name: logs/fund-agent.log
+    max-size: 10MB
+    max-history: 30
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# ================ 服务器配置 ================
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+  error:
+    include-message: always
+    include-binding-errors: always
+  tomcat:
+    connection-timeout: 30000
+    max-connections: 10000
+    threads:
+      max: 200
+      min-spare: 10
+
+# ================ 安全配置 ================
+security:
+  enabled: false
+  basic:
+    enabled: false
+  jwt:
+    secret: ${JWT_SECRET:fund-agent-secret-key-change-in-production}
+    expiration: 86400000  # 24小时
+
+# ================ 自定义配置 ================
+app:
+  version: 1.0.0
+  environment: ${ENVIRONMENT:dev}
+  debug: ${DEBUG:false}
+  cache:
+    # 基金基础信息缓存时间（小时）
+    fund-info-ttl: 24
+    # 实时数据缓存时间（分钟）
+    realtime-data-ttl: 10
+    # 历史数据缓存时间（小时）
+    history-data-ttl: 168
+  limits:
+    # 最大持仓基金数量
+    max-holdings: 50
+    # 最大监控基金数量
+    max-monitored-funds: 100
+    # 单次批量操作最大数量
+    max-batch-size: 20
+  features:
+    # 功能开关
+    auto-data-collection: true
+    auto-strategy-decision: true
+    auto-notification: true
+    manual-trade-execution: false
+    advanced-analytics: true
+
+# ================ AI LLM配置 ================
+ai:
+  llm:
+    enabled: true
+    default-provider: mock  # 默认使用mock，生产环境可改为openai
+
+    providers:
+      mock:
+        enabled: true
+        model: mock-model
+        parameters:
+          simulatedDelayMs: 300
+          successRate: 0.95
+          smartReplies: true
+
+      openai:
+        enabled: false  # 生产环境设为true并配置API密钥
+        api-key: ${OPENAI_API_KEY:}
+        model: gpt-3.5-turbo
+        temperature: 0.3
+        max-tokens: 1000
+        timeout-ms: 30000
+        parameters:
+          topP: 1.0
+          frequencyPenalty: 0.0
+          presencePenalty: 0.0
+
+      anthropic:
+        enabled: false  # 需要时启用
+        api-key: ${ANTHROPIC_API_KEY:}
+        model: claude-3-sonnet-20240229
+        temperature: 0.2
+        max-tokens: 2000
+        timeout-ms: 40000
+
+    cost-control:
+      enabled: true
+      monthly-budget: 100.00  # 美元
+      max-cost-per-analysis: 0.10
+      daily-request-limit: 100
+      enable-cost-alerts: true
+      alert-threshold: 0.8  # 预算80%时告警
+
+    resilience:
+      enabled: true
+      retry-attempts: 2
+      retry-interval-ms: 1000
+      timeout-ms: 5000
+      circuit-breaker-enabled: true
+      circuit-breaker-error-threshold: 5
+      circuit-breaker-recovery-ms: 60000
+      fallback-to-rules: true
+
+    log:
+      enabled: true
+      log-full-request: false
+      log-full-response: false
+      log-cost: true
+      log-performance: true
+

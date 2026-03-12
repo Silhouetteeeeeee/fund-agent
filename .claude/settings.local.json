@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn clean compile -DskipTests)",
+      "Bash(java -version)",
+      "Bash(mvn compile -q)",
+      "Bash(dir pom.xml)",
+      "Bash(mvn -v)",
+      "Bash(mvn compile -e)",
+      "Bash(mvn test -Dtest=TaskSchedulerTest)",
+      "Bash(mvn test -Dtest=StrategyDecisionEngineImplTest)",
+      "Bash(mvn test -Dtest=StrategyDecisionEngineImplTest -DfailIfNoTests=false)",
+      "Bash(mvn compile test-compile -DskipTests)",
+      "Bash(mvn test -DskipTests=false)",
+      "Bash(mvn clean compile)",
+      "Bash(mvn test -Dtest=NotificationServiceImplTest)",
+      "Bash(mvn clean test-compile)",
+      "Bash(mvn clean install -DskipTests)",
+      "Bash(mvn test)"
+    ]
+  }
+}
