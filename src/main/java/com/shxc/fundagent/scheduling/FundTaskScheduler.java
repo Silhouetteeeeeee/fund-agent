@@ -45,16 +45,22 @@ public class FundTaskScheduler {
     private final FundDailyDataRepository fundDailyDataRepository;
     private static final Set<LocalDate> tradeDays = new HashSet<>();
 
+    // 持仓状态常量
+    private static final String HOLDING_STATUS_ACTIVE = "ACTIVE";
+    private static final String HOLDING_STATUS_SOLD = "SOLD";
+
     // ================ 数据采集任务 ================
 
     @Scheduled(cron = "0 0 0 * * MON-FRI")
     public void init() {
-        log.info("美好的一天开始啦😘😘😘");
-        // 清理统计交易日的缓存
-        log.info("目前已经交易的日期 {}", tradeDays);
-        if (tradeDays.size() >= 10) {
-            tradeDays.clear();
-        }
+        executeScheduledTask("初始化任务", () -> {
+            log.info("美好的一天开始啦😘😘😘");
+            // 清理统计交易日的缓存
+            log.info("目前已经交易的日期 {}", tradeDays);
+            if (tradeDays.size() >= 10) {
+                tradeDays.clear();
+            }
+        });
     }
 
     /**
@@ -63,11 +69,7 @@ public class FundTaskScheduler {
      */
     @Scheduled(cron = "0 30 9 * * MON-FRI")
     public void collectOpeningData() {
-        log.info("开始执行开盘数据采集任务...");
-
-        try {
-            // 获取需要监控的基金代码列表
-            // 这里应该从数据库或配置中获取
+        executeScheduledTask("开盘数据采集任务", () -> {
             List<String> fundCodes = getMonitoredFundCodes();
 
             if (fundCodes.isEmpty()) {
@@ -77,11 +79,7 @@ public class FundTaskScheduler {
 
             log.info("开始采集 {} 只基金的实时数据...", fundCodes.size());
             fundDataService.batchGetRealTimeData(fundCodes);
-
-            log.info("开盘数据采集任务完成");
-        } catch (Exception e) {
-            log.error("开盘数据采集任务失败", e);
-        }
+        });
     }
 
     /**
@@ -91,30 +89,12 @@ public class FundTaskScheduler {
      */
     @Scheduled(cron = "0 0 15 * * MON-FRI")
     public void collectClosingData() {
-        log.info("开始执行收盘数据采集任务...");
-
-        try {
-            List<String> fundCodes = getMonitoredFundCodes();
-
-            if (fundCodes.isEmpty()) {
-                log.info("没有需要监控的基金，跳过收盘数据采集");
-                return;
-            }
-
+        List<String> fundCodes = getMonitoredFundCodes();
+        executeFundCodeTask("收盘数据采集任务", fundCodes, fundCode -> {
             // 收盘时可能需要更详细的数据，如净值、成交量等
             // 这里可以调用专门获取收盘数据的方法
-            for (String fundCode : fundCodes) {
-                try {
-                    fundDataService.getRealTimeData(fundCode);
-                } catch (Exception e) {
-                    log.warn("基金 {} 收盘数据采集失败: {}", fundCode, e.getMessage());
-                }
-            }
-
-            log.info("收盘数据采集任务完成");
-        } catch (Exception e) {
-            log.error("收盘数据采集任务失败", e);
-        }
+            fundDataService.getRealTimeData(fundCode);
+        });
     }
 
     /**
@@ -123,25 +103,12 @@ public class FundTaskScheduler {
      */
     @Scheduled(cron = "0 0 9 * * SAT")
     public void syncWeekendData() {
-        log.info("开始执行周末数据同步任务...");
-
-        try {
-            List<String> fundCodes = getMonitoredFundCodes();
-
-            for (String fundCode : fundCodes) {
-                try {
-                    // 同步基金基础信息
-                    fundDataService.getFundBasicInfo(fundCode);
-                    log.debug("基金 {} 基础信息同步成功", fundCode);
-                } catch (Exception e) {
-                    log.warn("基金 {} 基础信息同步失败: {}", fundCode, e.getMessage());
-                }
-            }
-
-            log.info("周末数据同步任务完成，共处理 {} 只基金", fundCodes.size());
-        } catch (Exception e) {
-            log.error("周末数据同步任务失败", e);
-        }
+        List<String> fundCodes = getMonitoredFundCodes();
+        executeFundCodeTask("周末数据同步任务", fundCodes, fundCode -> {
+            // 同步基金基础信息
+            fundDataService.getFundBasicInfo(fundCode);
+            log.debug("基金 {} 基础信息同步成功", fundCode);
+        });
     }
 
     // ================ 策略决策任务 ================
@@ -152,34 +119,11 @@ public class FundTaskScheduler {
      */
     @Scheduled(cron = "0 0 10 * * MON-FRI")
     public void executeStrategyDecisions() {
-        log.info("开始执行策略决策任务...");
-
-        try {
-            List<String> fundCodes = getMonitoredFundCodes();
-
-            if (fundCodes.isEmpty()) {
-                log.info("没有需要监控的基金，跳过策略决策");
-                return;
-            }
-
-            int successCount = 0;
-            int failCount = 0;
-
-            for (String fundCode : fundCodes) {
-                try {
-                    strategyDecisionEngine.decideForFund(fundCode);
-                    successCount++;
-                    log.debug("基金 {} 策略决策执行成功", fundCode);
-                } catch (Exception e) {
-                    failCount++;
-                    log.warn("基金 {} 策略决策执行失败: {}", fundCode, e.getMessage());
-                }
-            }
-
-            log.info("策略决策任务完成，成功: {}，失败: {}", successCount, failCount);
-        } catch (Exception e) {
-            log.error("策略决策任务失败", e);
-        }
+        List<String> fundCodes = getMonitoredFundCodes();
+        executeFundCodeTask("策略决策任务", fundCodes, fundCode -> {
+            strategyDecisionEngine.decideForFund(fundCode);
+            log.debug("基金 {} 策略决策执行成功", fundCode);
+        });
     }
 
     /**
@@ -188,30 +132,11 @@ public class FundTaskScheduler {
      */
 //    @Scheduled(cron = "0 30 20 * * MON-FRI")
     public void calculateHoldingYields() {
-        log.info("开始执行持仓收益计算任务...");
-
-        try {
-            // 获取所有持仓基金代码
-            List<String> holdingFundCodes = getHoldingFundCodes();
-
-            if (holdingFundCodes.isEmpty()) {
-                log.info("没有持仓基金，跳过收益计算");
-                return;
-            }
-
-            for (String fundCode : holdingFundCodes) {
-                try {
-                    yieldCalculationService.calculateFundYield(fundCode, null);
-                    log.debug("基金 {} 收益计算成功", fundCode);
-                } catch (Exception e) {
-                    log.warn("基金 {} 收益计算失败: {}", fundCode, e.getMessage());
-                }
-            }
-
-            log.info("持仓收益计算任务完成，共处理 {} 只持仓基金", holdingFundCodes.size());
-        } catch (Exception e) {
-            log.error("持仓收益计算任务失败", e);
-        }
+        List<String> holdingFundCodes = getHoldingFundCodes();
+        executeFundCodeTask("持仓收益计算任务", holdingFundCodes, fundCode -> {
+            yieldCalculationService.calculateFundYield(fundCode, null);
+            log.debug("基金 {} 收益计算成功", fundCode);
+        });
     }
 
     /**
@@ -221,68 +146,78 @@ public class FundTaskScheduler {
      */
     @Scheduled(cron = "0 0 20 * * MON-FRI")
     public void recalculateHoldingCostPrice() {
-        try {
+        executeScheduledTask("重新计算持仓成本价格任务", () -> {
             List<FundHolding> fundHoldings = fundHoldingRepository.findAllActiveHoldings();
             for (FundHolding fundHolding : fundHoldings) {
                 calculateHoldingCostPrice(fundHolding);
                 if (fundHolding.getHoldingAmount().equals(BigDecimal.ZERO)) {
-                    fundHolding.setStatus("SOLD");
+                    fundHolding.setStatus(HOLDING_STATUS_SOLD);
                 }
             }
             fundHoldingRepository.saveAll(fundHoldings);
-        } catch (Exception e) {
-            log.error("持仓收益计算任务失败", e);
-        }
+        });
     }
 
     @Scheduled(cron = "0 */30 20-23 * * MON-FRI")
     public void fallback() {
-        // 近七天净值计算失败的所有基金
-        List<FundDailyData> fundDailyData = fundDailyDataRepository.findByTradeDateBetween(LocalDate.now().minusDays(6), LocalDate.now());
-        List<FundDailyData> failedFundDailyData = fundDailyData.stream().filter(it -> it.getNetValue() == null).toList();
-        Map<String, List<FundDailyData>> failFundDataMap = failedFundDailyData.stream().collect(Collectors.groupingBy(FundDailyData::getFundCode, Collectors.toList()));
-        for (String fundCode: failFundDataMap.keySet()) {
-            log.info("基金 {} 净值计算失败，开始兜底", fundCode);
-            List<FundDailyData> datas = failFundDataMap.get(fundCode);
-            datas.sort(Comparator.comparing(FundDailyData::getTradeDate));
-            Map<LocalDate, FundDailyData> historyMap = fundDataService.getHistoryData(fundCode, datas.get(0).getTradeDate(), datas.get(datas.size() - 1).getTradeDate())
-                    .stream().collect(Collectors.toMap(FundDailyData::getTradeDate, it -> it));
-            for (FundDailyData data: datas) {
-                FundDailyData historyData = historyMap.get(data.getTradeDate());
-                if (historyData != null && historyData.getNetValue() != null) {
-                    log.info("基金 {} 于{}的净值成功，开始入库", fundCode, data.getTradeDate());
-                    data.setNetValue(historyData.getNetValue());
-                    data.setChangeRate(historyData.getChangeRate());
-                    fundDailyDataRepository.save(data);
+        executeScheduledTask("兜底任务", () -> {
+            // 近七天净值计算失败的所有基金
+            List<FundDailyData> fundDailyData = fundDailyDataRepository.findByTradeDateBetween(LocalDate.now().minusDays(6), LocalDate.now());
+            List<FundDailyData> failedFundDailyData = fundDailyData.stream().filter(it -> it.getNetValue() == null).toList();
+            Map<String, List<FundDailyData>> failFundDataMap = failedFundDailyData.stream().collect(Collectors.groupingBy(FundDailyData::getFundCode, Collectors.toList()));
+
+            for (String fundCode: failFundDataMap.keySet()) {
+                log.info("基金 {} 净值计算失败，开始兜底", fundCode);
+                List<FundDailyData> datas = failFundDataMap.get(fundCode);
+                datas.sort(Comparator.comparing(FundDailyData::getTradeDate));
+                Map<LocalDate, FundDailyData> historyMap = fundDataService.getHistoryData(fundCode, datas.get(0).getTradeDate(), datas.get(datas.size() - 1).getTradeDate())
+                        .stream().collect(Collectors.toMap(FundDailyData::getTradeDate, it -> it));
+                for (FundDailyData data: datas) {
+                    FundDailyData historyData = historyMap.get(data.getTradeDate());
+                    if (historyData != null && historyData.getNetValue() != null) {
+                        log.info("基金 {} 于{}的净值成功，开始入库", fundCode, data.getTradeDate());
+                        data.setNetValue(historyData.getNetValue());
+                        data.setChangeRate(historyData.getChangeRate());
+                        fundDailyDataRepository.save(data);
+                    }
                 }
             }
-        }
-        // 获取所有需要确认的交易记录
-        List<String> toEstimate = fundTransactionRecordRepository.findByEstimatedConfirmDateBeforeAndStatus(LocalDate.now(), TransactionStatus.PENDING)
-                .stream().map(FundTransactionRecord::getFundCode).distinct().toList();
-        for (String record: toEstimate) {
-            FundHolding fundHolding = fundHoldingRepository.findAcitveHoldingByFundCode(record);
-            calculateHoldingCostPrice(fundHolding);
-            if (fundHolding.getHoldingAmount().equals(BigDecimal.ZERO)) {
-                fundHolding.setStatus("SOLD");
-            }
-            fundHoldingRepository.save(fundHolding);
-        }
-        List<FundTransactionRecord> records = fundTransactionRecordRepository.findByEstimatedConfirmDateBeforeAndStatus(LocalDate.now(), TransactionStatus.PENDING);
-        if (records.isEmpty() && !tradeDays.contains(LocalDate.now())) {
-            // 说明当前所有基金的交易记录已经确认 每天只执行一遍
-            tradeDays.add(LocalDate.now());
-            calculateHoldingYields();
-        }
 
+            // 获取所有需要确认的交易记录
+            List<String> toEstimate = fundTransactionRecordRepository.findByEstimatedConfirmDateBeforeAndStatus(LocalDate.now(), TransactionStatus.PENDING)
+                    .stream().map(FundTransactionRecord::getFundCode).distinct().toList();
+            for (String fundCode: toEstimate) {
+                FundHolding fundHolding = fundHoldingRepository.findAcitveHoldingByFundCode(fundCode);
+                calculateHoldingCostPrice(fundHolding);
+                if (fundHolding.getHoldingAmount().equals(BigDecimal.ZERO)) {
+                    fundHolding.setStatus(HOLDING_STATUS_SOLD);
+                }
+                fundHoldingRepository.save(fundHolding);
+            }
+
+            List<FundTransactionRecord> records = fundTransactionRecordRepository.findByEstimatedConfirmDateBeforeAndStatus(LocalDate.now(), TransactionStatus.PENDING);
+            if (records.isEmpty() && !tradeDays.contains(LocalDate.now())) {
+                // 说明当前所有基金的交易记录已经确认 每天只执行一遍
+                tradeDays.add(LocalDate.now());
+                calculateHoldingYields();
+            }
+        });
     }
 
+    /**
+     * 计算持仓成本价格和份额
+     * 基于交易记录计算当前持仓的成本价格、持有份额和持有价值
+     *
+     * @param fundHolding 持仓记录（会被更新）
+     */
     private void calculateHoldingCostPrice(FundHolding fundHolding) {
         List<FundTransactionRecord> transactionRecords =
                 fundTransactionRecordRepository.findActiveTransactionRecord(fundHolding.getFundCode());
         if (transactionRecords.isEmpty()) return;
+
         BigDecimal holdingAmount = BigDecimal.ZERO; // 计算所有份额
         BigDecimal realHoldingValue = BigDecimal.ZERO; // 实际持有价值 = sum(each total_amount * (1 - fee))
+
         for (FundTransactionRecord record: transactionRecords) {
             if (!confirmedTransaction(record)) break;
             BigDecimal sign = new BigDecimal(record.getTransactionSign());
@@ -290,6 +225,7 @@ public class FundTaskScheduler {
             // 实际持有价值 += 全部交易金额 * (1 - 手续费 / 100)
             realHoldingValue = realHoldingValue.add(record.getTotalCost().multiply(sign));
         }
+
         if (holdingAmount.compareTo(BigDecimal.ZERO) == 0) {
             fundHolding.setCostPrice(BigDecimal.ZERO);
             fundHolding.setHoldingAmount(BigDecimal.ZERO);
@@ -302,6 +238,14 @@ public class FundTaskScheduler {
         }
     }
 
+    /**
+     * 确认交易记录状态
+     * 如果交易状态为PENDING，尝试获取净值进行确认
+     * 对于购买交易，计算实际确认份额；对于赎回交易，计算实际赎回金额
+     *
+     * @param record 交易记录（可能会被更新状态）
+     * @return true如果交易已确认或已经是确认状态，false如果无法确认（净值未计算）
+     */
     private boolean confirmedTransaction(FundTransactionRecord record) {
         String fundCode = record.getFundCode();
         if (record.getStatus() == TransactionStatus.PENDING) {
@@ -316,6 +260,7 @@ public class FundTaskScheduler {
             record.setPrice(currentPrice);
             record.setStatus(TransactionStatus.CONFIRMED);
             record.setActualConfirmTime(LocalDateTime.now());
+
             if (TransactionType.BUY.equals(record.getTransactionType())) { // 说明净值还未计算
                 // 说明当天净值还未计算出来 直接放弃当前持仓成本金额的计算
                 record.setAmount(record.getTotalAmount().divide(record.getPrice(), 4, RoundingMode.HALF_UP));
@@ -329,6 +274,13 @@ public class FundTaskScheduler {
         return true;
     }
 
+    /**
+     * 获取指定基金在特定日期的净值
+     *
+     * @param fundCode 基金代码
+     * @param targetDate 目标日期
+     * @return 净值，如果未找到则返回null
+     */
     private BigDecimal fetchPrice(String fundCode, LocalDate targetDate) {
         List<FundDailyData> dataList = fundDataService.getHistoryData(fundCode, targetDate, targetDate);
         return dataList.stream()
@@ -344,16 +296,11 @@ public class FundTaskScheduler {
      */
     @Scheduled(cron = "0 0 16 * * MON-FRI")
     public void generateDailyReport() {
-        log.info("开始执行日报生成任务...");
-
-        try {
+        executeScheduledTask("日报生成任务", () -> {
             String reportDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             reportGenerationService.generateDailyReport(reportDate);
-
             log.info("日报生成任务完成，报告日期: {}", reportDate);
-        } catch (Exception e) {
-            log.error("日报生成任务失败", e);
-        }
+        });
     }
 
     /**
@@ -361,16 +308,11 @@ public class FundTaskScheduler {
      */
     @Scheduled(cron = "0 30 16 * * FRI")
     public void generateWeeklyReport() {
-        log.info("开始执行周报生成任务...");
-
-        try {
+        executeScheduledTask("周报生成任务", () -> {
             String reportDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
             reportGenerationService.generateWeeklyReport(reportDate);
-
             log.info("周报生成任务完成，报告日期: {}", reportDate);
-        } catch (Exception e) {
-            log.error("周报生成任务失败", e);
-        }
+        });
     }
 
     /**
@@ -378,16 +320,11 @@ public class FundTaskScheduler {
      */
     @Scheduled(cron = "0 30 16 L * ?")
     public void generateMonthlyReport() {
-        log.info("开始执行月报生成任务...");
-
-        try {
+        executeScheduledTask("月报生成任务", () -> {
             String reportDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
             reportGenerationService.generateMonthlyReport(reportDate);
-
             log.info("月报生成任务完成，报告月份: {}", reportDate);
-        } catch (Exception e) {
-            log.error("月报生成任务失败", e);
-        }
+        });
     }
 
     // ================ 系统维护任务 ================
@@ -397,9 +334,7 @@ public class FundTaskScheduler {
      */
     @Scheduled(cron = "0 0 2 * * ?")
     public void cleanupCache() {
-        log.info("开始执行缓存清理任务...");
-
-        try {
+        executeScheduledTask("缓存清理任务", () -> {
             if (cacheManager != null) {
                 cacheManager.getCacheNames().forEach(cacheName -> {
                     try {
@@ -413,11 +348,7 @@ public class FundTaskScheduler {
 
             // 同时调用策略引擎的缓存清理
             strategyDecisionEngine.clearCache("all");
-
-            log.info("缓存清理任务完成");
-        } catch (Exception e) {
-            log.error("缓存清理任务失败", e);
-        }
+        });
     }
 
     /**
@@ -425,21 +356,24 @@ public class FundTaskScheduler {
      */
     @Scheduled(cron = "0 0 * * * ?")
     public void checkTaskStatus() {
-        log.debug("任务状态检查...");
-        // 这里可以检查定时任务的执行状态，记录日志等
+        executeScheduledTask("任务状态检查", () -> {
+            log.debug("任务状态检查...");
+            // 这里可以检查定时任务的执行状态，记录日志等
+        });
     }
 
     // ================ 私有辅助方法 ================
 
     /**
      * 获取需要监控的基金代码列表
+     * 当前实现返回所有持仓基金代码，未来可以扩展为从配置中获取
+     *
+     * @return 需要监控的基金代码列表
      */
     private List<String> getMonitoredFundCodes() {
-        // 这里应该从数据库或配置中获取需要监控的基金代码
-        // 简化实现：返回一个测试基金代码
-        // TODO: 先从持仓基金获取
-
-        return getHoldingFundCodes(); // 银河创新成长混合
+        // TODO: 未来可以从数据库或配置中获取需要监控的基金代码
+        // 当前简化实现：返回所有持仓基金代码
+        return getHoldingFundCodes();
     }
 
     /**
@@ -449,5 +383,63 @@ public class FundTaskScheduler {
         // 这里应该从数据库中获取持仓基金代码
         List<FundHolding> holdings = fundHoldingRepository.findAllActiveHoldings();
         return holdings.stream().map(FundHolding::getFundCode).collect(Collectors.toList());
+    }
+
+    // ================ 私有辅助方法 ================
+
+    /**
+     * 执行定时任务的标准模板方法
+     * 提供统一的错误处理和日志记录
+     *
+     * @param taskName 任务名称（用于日志记录）
+     * @param taskFunction 任务执行逻辑
+     */
+    private void executeScheduledTask(String taskName, Runnable taskFunction) {
+        log.info("开始执行{}...", taskName);
+
+        try {
+            taskFunction.run();
+            log.info("{}完成", taskName);
+        } catch (Exception e) {
+            log.error("{}失败", taskName, e);
+        }
+    }
+
+    /**
+     * 执行基金代码列表相关的定时任务模板方法
+     * 提供统一的错误处理、日志记录和成功失败统计
+     *
+     * @param taskName 任务名称（用于日志记录）
+     * @param fundCodes 基金代码列表
+     * @param fundCodeProcessor 对每个基金代码的处理逻辑
+     */
+    private void executeFundCodeTask(String taskName, List<String> fundCodes,
+                                    java.util.function.Consumer<String> fundCodeProcessor) {
+        log.info("开始执行{}...", taskName);
+
+        try {
+            if (fundCodes.isEmpty()) {
+                log.info("没有需要处理的基金，跳过{}", taskName);
+                return;
+            }
+
+            int successCount = 0;
+            int failCount = 0;
+
+            for (String fundCode : fundCodes) {
+                try {
+                    fundCodeProcessor.accept(fundCode);
+                    successCount++;
+                    log.debug("基金 {} {}成功", fundCode, taskName);
+                } catch (Exception e) {
+                    failCount++;
+                    log.warn("基金 {} {}失败: {}", fundCode, taskName, e.getMessage());
+                }
+            }
+
+            log.info("{}完成，成功: {}，失败: {}", taskName, successCount, failCount);
+        } catch (Exception e) {
+            log.error("{}失败", taskName, e);
+        }
     }
 }
