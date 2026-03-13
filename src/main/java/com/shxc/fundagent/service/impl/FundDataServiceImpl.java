@@ -10,7 +10,7 @@ import com.shxc.fundagent.repository.FundDailyDataRepository;
 import com.shxc.fundagent.repository.FundInfoRepository;
 import com.shxc.fundagent.service.FundDataService;
 import com.shxc.fundagent.service.FundDataSource;
-import com.shxc.fundagent.service.TransactionService;
+import com.shxc.fundagent.service.HolidayCalendarService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,8 +20,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
-import java.time.DayOfWeek;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,18 +36,18 @@ public class FundDataServiceImpl implements FundDataService {
     private final FundDailyDataRepository fundDailyDataRepository;
     private final List<FundDataSource> dataSources;
     private final TianTianFundDataSource tianTianFundDataSource; // 主数据源
-    private final TransactionService transactionService;
+    private final HolidayCalendarService holidayCalendarService;
 
     @Autowired
     public FundDataServiceImpl(FundInfoRepository fundInfoRepository,
                                FundDailyDataRepository fundDailyDataRepository,
                                List<FundDataSource> dataSources,
-                               TianTianFundDataSource tianTianFundDataSource, TransactionService transactionService) {
+                               TianTianFundDataSource tianTianFundDataSource, HolidayCalendarService holidayCalendarService) {
         this.fundInfoRepository = fundInfoRepository;
         this.fundDailyDataRepository = fundDailyDataRepository;
         this.dataSources = dataSources;
         this.tianTianFundDataSource = tianTianFundDataSource;
-        this.transactionService = transactionService;
+        this.holidayCalendarService = holidayCalendarService;
         log.info("FundDataService initialized with {} data sources", dataSources.size());
     }
 
@@ -128,7 +128,9 @@ public class FundDataServiceImpl implements FundDataService {
         }
         List<FundDailyData> existingData = fundDailyDataRepository
                 .findByFundCodeAndTradeDateBetween(fundCode, sDate, eDate);
-
+        if (existingData.stream().filter(it -> it.getNetValue() != null).count() == (Period.between(sDate, eDate).getDays() + 1)) {
+            return existingData;
+        }
         // 2. 从数据源获取历史数据
         FundHistoryDataDTO historyData = fetchFromDataSources(fundCode, "HISTORY_RANGE", sDate, eDate);
 
@@ -151,6 +153,9 @@ public class FundDataServiceImpl implements FundDataService {
         LocalDate startDate = endDate.minusDays(days);
         List<FundDailyData> existingData = fundDailyDataRepository
                 .findByFundCodeAndTradeDateBetween(fundCode, startDate, endDate);
+        if (existingData.stream().filter(it -> it.getNetValue() != null).count() == days) {
+            return existingData;
+        }
         // 2. 从数据源获取历史数据
         FundHistoryDataDTO historyData = fetchFromDataSources(fundCode, "HISTORY", days);
 
@@ -303,11 +308,14 @@ public class FundDataServiceImpl implements FundDataService {
             return existingData.get().getNetValue();
         } else {
             // 尝试获取历史数据
-            FundHistoryDataDTO historyData = fetchFromDataSources(fundCode, "HISTORY", 1);
-            if (historyData != null && historyData.isValid()) {
-                FundHistoryDataDTO.HistoryDataItem todayData = historyData.getData().get(0);
-                BigDecimal netValue = todayData.getNetValueAsBigDecimal();
-                return netValue;
+            FundRealTimeDataDTO realTimeData = fetchFromDataSources(fundCode, "REAL_TIME");
+            if (realTimeData != null && realTimeData.isValid()) {
+                if (realTimeData.getNetValueDateAsLocalDate().equals(today)) { // 必须是当天的数据
+                    return null;
+                }
+                FundDailyData fundDailyData = convertToFundDailyData(realTimeData);
+                fundDailyDataRepository.save(fundDailyData);
+                return realTimeData.getNetValueAsBigDecimal();
             }
         }
         // 获取不到就返回null
@@ -728,7 +736,7 @@ public class FundDataServiceImpl implements FundDataService {
      * 判断是否为交易日（周一至周五）
      */
     private boolean isTradingDay(LocalDate date) {
-        return transactionService.isTradeDay(date);
+        return holidayCalendarService.isTradeDay(date);
     }
 
     /**

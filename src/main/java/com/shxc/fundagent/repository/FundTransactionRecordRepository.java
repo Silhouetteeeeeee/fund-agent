@@ -26,7 +26,7 @@ public interface FundTransactionRecordRepository extends JpaRepository<FundTrans
     List<FundTransactionRecord> findByFundCode(String fundCode);
 
     @Query("select t from FundTransactionRecord t where t.fundCode = :fundCode and t.estimatedConfirmDate <= current date " +
-            "order by t.estimatedConfirmDate desc")
+            "and t.status != '已取消' order by t.estimatedConfirmDate desc")
     List<FundTransactionRecord> findActiveTransactionRecord(String fundCode);
 
     /**
@@ -70,7 +70,7 @@ public interface FundTransactionRecordRepository extends JpaRepository<FundTrans
     /**
      * 统计指定基金的交易总份额（购买）
      */
-    @Query("SELECT SUM(t.confirmedAmount) FROM FundTransactionRecord t WHERE t.fundCode = :fundCode " +
+    @Query("SELECT SUM(t.amount) FROM FundTransactionRecord t WHERE t.fundCode = :fundCode " +
            "AND t.transactionType = com.shxc.fundagent.enums.TransactionType.BUY " +
            "AND t.status = com.shxc.fundagent.enums.TransactionStatus.CONFIRMED")
     Optional<BigDecimal> sumBuyConfirmedAmountByFundCode(@Param("fundCode") String fundCode);
@@ -78,7 +78,7 @@ public interface FundTransactionRecordRepository extends JpaRepository<FundTrans
     /**
      * 统计指定基金的交易总金额（赎回）
      */
-    @Query("SELECT SUM(t.totalAmount) FROM FundTransactionRecord t WHERE t.fundCode = :fundCode " +
+    @Query("SELECT SUM(t.amount) FROM FundTransactionRecord t WHERE t.fundCode = :fundCode " +
            "AND t.transactionType = com.shxc.fundagent.enums.TransactionType.SELL " +
            "AND t.status = com.shxc.fundagent.enums.TransactionStatus.CONFIRMED")
     Optional<BigDecimal> sumSellTotalAmountByFundCode(@Param("fundCode") String fundCode);

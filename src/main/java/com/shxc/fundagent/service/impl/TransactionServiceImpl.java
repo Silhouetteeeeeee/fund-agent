@@ -7,8 +7,8 @@ import com.shxc.fundagent.enums.TransactionStatus;
 import com.shxc.fundagent.enums.TransactionType;
 import com.shxc.fundagent.repository.FundHoldingRepository;
 import com.shxc.fundagent.repository.FundTransactionRecordRepository;
-import com.shxc.fundagent.repository.HolidayCalendarRepository;
 import com.shxc.fundagent.service.FundDataService;
+import com.shxc.fundagent.service.HolidayCalendarService;
 import com.shxc.fundagent.service.TransactionService;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -18,12 +18,10 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,27 +36,21 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final FundTransactionRecordRepository transactionRecordRepository;
     private final FundHoldingRepository holdingRepository;
-    private final HolidayCalendarRepository holidayCalendarRepository;
+    private final HolidayCalendarService holidayCalendarService;
     private final FundDataService fundDataService;
 
     @Autowired
     public TransactionServiceImpl(FundTransactionRecordRepository transactionRecordRepository,
-                                  FundHoldingRepository holdingRepository, HolidayCalendarRepository holidayCalendarRepository, FundDataService fundDataService) {
+                                  FundHoldingRepository holdingRepository, HolidayCalendarService holidayCalendarService, FundDataService fundDataService) {
         this.transactionRecordRepository = transactionRecordRepository;
         this.holdingRepository = holdingRepository;
-        this.holidayCalendarRepository = holidayCalendarRepository;
+        this.holidayCalendarService = holidayCalendarService;
         this.fundDataService = fundDataService;
     }
 
     @Override
-    public FundTransactionRecord createBuyTransaction(String fundCode, BigDecimal amount, BigDecimal price,
+    public FundTransactionRecord createBuyTransaction(String fundCode, BigDecimal totalAmount,
                                                       LocalDateTime transactionTime, BigDecimal fee) {
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("购买份额必须大于0");
-        }
-        if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("价格必须大于0");
-        }
         if (transactionTime == null) {
             transactionTime = LocalDateTime.now();
         }
@@ -69,11 +61,9 @@ public class TransactionServiceImpl implements TransactionService {
         FundTransactionRecord transaction = new FundTransactionRecord();
         transaction.setFundCode(fundCode);
         transaction.setTransactionType(TransactionType.BUY);
-        transaction.setAmount(amount);
-        transaction.setPrice(price);
         transaction.setTransactionTime(transactionTime);
         transaction.setFee(fee);
-        transaction.setTotalAmount(amount.multiply(price));
+        transaction.setTotalAmount(totalAmount);
         calculateEstimatedConfirmTime(transaction);
         transaction.setStatus(TransactionStatus.PENDING);
         if (transaction.getEstimatedConfirmDate().isBefore(LocalDate.now())) {
@@ -81,21 +71,22 @@ public class TransactionServiceImpl implements TransactionService {
             List<FundDailyData> historyDataList = fundDataService.getHistoryData(fundCode, transaction.getEstimatedConfirmDate(), transaction.getEstimatedConfirmDate());
             if (historyDataList != null && historyDataList.size() !=0 ) {
                 FundDailyData data = historyDataList.get(0);
-                transaction.setPrice(data.getNetValue());
-                // transaction.setAmount(data.); // TODO: Fix this line
+                if (data.getNetValue() != null) {
+                    transaction.setPrice(data.getNetValue());
+                    transaction.setAmount(transaction.getTotalCost().divide(data.getNetValue(), 4, RoundingMode.HALF_UP));
+                    transaction.setActualConfirmTime(LocalDateTime.now());
+                    transaction.setStatus(TransactionStatus.CONFIRMED);
+                }
             }
         }
         return transactionRecordRepository.save(transaction);
     }
 
     @Override
-    public FundTransactionRecord createSellTransaction(String fundCode, BigDecimal amount, BigDecimal price,
+    public FundTransactionRecord createSellTransaction(String fundCode, BigDecimal amount,
                                                        LocalDateTime transactionTime, BigDecimal fee) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("赎回份额必须大于0");
-        }
-        if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("价格必须大于0");
         }
         if (transactionTime == null) {
             transactionTime = LocalDateTime.now();
@@ -114,12 +105,24 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setFundCode(fundCode);
         transaction.setTransactionType(TransactionType.SELL);
         transaction.setAmount(amount);
-        transaction.setPrice(price);
         transaction.setTransactionTime(transactionTime);
         transaction.setFee(fee);
-        transaction.setTotalAmount(amount.multiply(price));
         transaction.setStatus(TransactionStatus.PENDING);
         calculateEstimatedConfirmTime(transaction);
+
+        if (transaction.getEstimatedConfirmDate().isBefore(LocalDate.now())) {
+            // 历史数据初始化
+            List<FundDailyData> historyDataList = fundDataService.getHistoryData(fundCode, transaction.getEstimatedConfirmDate(), transaction.getEstimatedConfirmDate());
+            if (historyDataList != null && historyDataList.size() !=0 ) {
+                FundDailyData data = historyDataList.get(0);
+                if (data.getNetValue() != null) {
+                    transaction.setPrice(data.getNetValue());
+                    transaction.setTotalAmount(amount.multiply(data.getNetValue()));
+                    transaction.setActualConfirmTime(LocalDateTime.now());
+                    transaction.setStatus(TransactionStatus.CONFIRMED);
+                }
+            }
+        }
 
         return transactionRecordRepository.save(transaction);
     }
@@ -137,13 +140,10 @@ public class TransactionServiceImpl implements TransactionService {
         boolean beforeCutoff = transactionTimeOfDay.isBefore(LocalTime.of(15, 0));
 
         // 如果是购买交易，确认时间通常是T+1或T+2
-        LocalDate confirmDate;
-        if (beforeCutoff) {
-            // T+1确认
+        LocalDate confirmDate = transactionDate;
+        if (!beforeCutoff) {
+            // 下一个交易日的净值确认
             confirmDate = transactionDate.plusDays(1);
-        } else {
-            // T+2确认
-            confirmDate = transactionDate.plusDays(2);
         }
         while (!isTradeDay(confirmDate)) {
             confirmDate = confirmDate.plusDays(1);
@@ -479,8 +479,6 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public boolean isTradeDay(LocalDate day) {
         // 非节假日 非周六周日
-        return day.getDayOfWeek() != DayOfWeek.SATURDAY
-                && day.getDayOfWeek() != DayOfWeek.SUNDAY
-                && !holidayCalendarRepository.existsByDate(day);
+        return holidayCalendarService.isTradeDay(day);
     }
 }

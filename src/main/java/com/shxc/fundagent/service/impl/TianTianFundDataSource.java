@@ -232,7 +232,8 @@ public class TianTianFundDataSource implements FundDataSource {
                     String body = response.body().string();
                     // 这里需要根据实际返回格式进行解析
                     // 由于格式较复杂，这里简化处理
-                    List<FundHistoryDataDTO.HistoryDataItem> items = parseHtmlDataToDTO(body.substring(14));
+                    List<FundHistoryDataDTO.HistoryDataItem> items = parseHtmlDataToDTO(body.substring(12, body.length() - 1)
+                            .replaceAll("([{, ])(\\w+)(:)", "$1\"$2\"$3"));
                     // 实际实现需要解析具体的返回格式
                     FundHistoryDataDTO data = new FundHistoryDataDTO();
                     data.setFundCode(fundCode);

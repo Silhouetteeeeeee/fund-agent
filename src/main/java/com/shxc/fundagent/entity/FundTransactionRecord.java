@@ -137,41 +137,6 @@ public class FundTransactionRecord {
         this.price = price;
         this.transactionTime = transactionTime;
         this.totalAmount = amount.multiply(price);
-        calculateEstimatedConfirmTime();
-    }
-
-    /**
-     * 计算预计确认时间
-     * 基金交易规则：
-     * 1. 交易日15:00前提交的交易，按当日净值计算，T+1日确认份额
-     * 2. 交易日15:00后提交的交易，按下一交易日净值计算，T+2日确认份额
-     * 3. 非交易日提交的交易，按下一交易日净值计算
-     *
-     * 注意：此处简化处理，不考虑节假日，实际应用中需要结合交易日历
-     */
-    @Deprecated
-    public void calculateEstimatedConfirmTime() {
-        if (transactionTime == null) {
-            return;
-        }
-
-        LocalDate transactionDate = transactionTime.toLocalDate();
-        LocalTime transactionTimeOfDay = transactionTime.toLocalTime();
-
-        // 判断是否在15:00前
-        boolean beforeCutoff = transactionTimeOfDay.isBefore(LocalTime.of(15, 0));
-
-        // 如果是购买交易，确认时间通常是T+1或T+2
-        LocalDate confirmDate;
-        if (beforeCutoff) {
-            // T+1确认
-            confirmDate = transactionDate.plusDays(1);
-        } else {
-            // T+2确认
-            confirmDate = transactionDate.plusDays(2);
-        }
-
-        this.estimatedConfirmDate = confirmDate;
     }
 
     /**
@@ -227,12 +192,9 @@ public class FundTransactionRecord {
         if (fee == null) {
             return totalAmount;
         }
-        return totalAmount
-                .multiply(
-                        BigDecimal.ONE.subtract(
-                                fee.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP)
-                        )
-                );
+        BigDecimal feeRate = fee.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+        BigDecimal feeAmount = totalAmount.multiply(feeRate);
+        return totalAmount.subtract(feeAmount);
     }
 
     /**

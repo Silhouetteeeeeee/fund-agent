@@ -1,8 +1,10 @@
 package com.shxc.fundagent.scheduling;
 
+import com.shxc.fundagent.entity.FundDailyData;
 import com.shxc.fundagent.entity.FundHolding;
 import com.shxc.fundagent.entity.FundTransactionRecord;
 import com.shxc.fundagent.enums.TransactionStatus;
+import com.shxc.fundagent.enums.TransactionType;
 import com.shxc.fundagent.repository.FundHoldingRepository;
 import com.shxc.fundagent.repository.FundTransactionRecordRepository;
 import com.shxc.fundagent.service.FundDataService;
@@ -14,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -22,6 +23,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -216,31 +218,22 @@ public class FundTaskScheduler {
                 BigDecimal holdingAmount = BigDecimal.ZERO; // 计算所有份额
                 BigDecimal realHoldingValue = BigDecimal.ZERO; // 实际持有价值 = sum(each total_amount * (1 - fee))
                 for (FundTransactionRecord record: transactionRecords) {
-                    String fundCode = record.getFundCode();
-                    if (record.getStatus() == TransactionStatus.PENDING) { // 说明净值还未计算
-                        BigDecimal currentPrice = fundDataService.getAbsoluteCurrentPrice(fundCode);
-                        // 说明当天净值还未计算出来 直接放弃当前持仓成本金额的计算
-                        if (currentPrice == null) {
-                            // TODO: 尝试加入重试机制
-                            log.warn("基金代码为{}的交易时间于{}的交易由于净值未计算无法结算", fundCode, record.getTransactionTime());
-                            break;
-                        }
-                        record.setPrice(currentPrice);
-                        record.setStatus(TransactionStatus.CONFIRMED);
-                        record.setActualConfirmTime(LocalDateTime.now());
-                        record.setAmount(record.getTotalAmount().divide(record.getPrice(), 4, RoundingMode.HALF_UP));
-                        // 计算完后保存交易记录的状态
-                        fundTransactionRecordRepository.save(record);
-                    }
-                    holdingAmount = holdingAmount.add(record.getAmount());
+                    if (!confirmedTransaction(record)) break;
+                    BigDecimal sign = new BigDecimal(record.getTransactionSign());
+                    holdingAmount = holdingAmount.add(record.getAmount().multiply(sign));
                     // 实际持有价值 += 全部交易金额 * (1 - 手续费 / 100)
-                    realHoldingValue = realHoldingValue
-                            .add(record.getTotalCost());
+                    realHoldingValue = realHoldingValue.add(record.getTotalCost().multiply(sign));
                 }
-                BigDecimal costPrice = realHoldingValue.divide(holdingAmount, 4, RoundingMode.HALF_UP);
-                fundHolding.setCostPrice(costPrice);
-                fundHolding.setHoldingAmount(holdingAmount);
-                fundHolding.setHoldingValue(realHoldingValue);
+                if (holdingAmount.compareTo(BigDecimal.ZERO) == 0) {
+                    fundHolding.setCostPrice(BigDecimal.ZERO);
+                    fundHolding.setHoldingAmount(BigDecimal.ZERO);
+                    fundHolding.setHoldingValue(BigDecimal.ZERO);
+                } else {
+                    BigDecimal costPrice = realHoldingValue.divide(holdingAmount, 4, RoundingMode.HALF_UP);
+                    fundHolding.setCostPrice(costPrice);
+                    fundHolding.setHoldingAmount(holdingAmount);
+                    fundHolding.setHoldingValue(realHoldingValue);
+                }
             }
             fundHoldingRepository.saveAll(fundHoldings);
         } catch (Exception e) {
@@ -248,7 +241,40 @@ public class FundTaskScheduler {
         }
     }
 
+    private boolean confirmedTransaction(FundTransactionRecord record) {
+        String fundCode = record.getFundCode();
+        if (record.getStatus() == TransactionStatus.PENDING) {
+            // 通过实时净值接口获取当天净值，获取报道说明净值信息还未更新
+            // 一般都是今天 是为了避免存在历史脏数据才获取的预估确认日期
+            BigDecimal currentPrice = fetchPrice(fundCode, record.getEstimatedConfirmDate());
+            if (currentPrice == null) {
+                // TODO: 尝试加入重试机制
+                log.warn("基金代码为{}的交易时间于{}的交易由于净值未计算无法结算", fundCode, record.getTransactionTime());
+                return false;
+            }
+            record.setPrice(currentPrice);
+            record.setStatus(TransactionStatus.CONFIRMED);
+            record.setActualConfirmTime(LocalDateTime.now());
+            if (TransactionType.BUY.equals(record.getTransactionType())) { // 说明净值还未计算
+                // 说明当天净值还未计算出来 直接放弃当前持仓成本金额的计算
+                record.setAmount(record.getTotalAmount().divide(record.getPrice(), 4, RoundingMode.HALF_UP));
+                // 计算完后保存交易记录的状态
+            } else if (TransactionType.SELL.equals(record.getTransactionType())) {
+                BigDecimal amount = record.getAmount(); // 卖出份额
+                record.setTotalAmount(amount.multiply(record.getPrice()));
+            }
+            fundTransactionRecordRepository.save(record);
+        }
+        return true;
+    }
 
+    private BigDecimal fetchPrice(String fundCode, LocalDate targetDate) {
+        List<FundDailyData> dataList = fundDataService.getHistoryData(fundCode, targetDate, targetDate);
+        return dataList.stream()
+                .findFirst()
+                .map(FundDailyData::getNetValue)
+                .orElse(null);
+    }
 
     // ================ 报告生成任务 ================
 

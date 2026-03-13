@@ -18,25 +18,23 @@ public interface TransactionService {
     /**
      * 创建购买交易记录
      * @param fundCode 基金代码
-     * @param amount 购买份额
-     * @param price 预期价格（单位净值）
+     * @param totalAmount 买入金额
      * @param transactionTime 交易时间
      * @param fee 手续费（可选）
      * @return 交易记录
      */
-    FundTransactionRecord createBuyTransaction(String fundCode, BigDecimal amount, BigDecimal price,
+    FundTransactionRecord createBuyTransaction(String fundCode, BigDecimal totalAmount,
                                                LocalDateTime transactionTime, BigDecimal fee);
 
     /**
      * 创建赎回交易记录
      * @param fundCode 基金代码
      * @param amount 赎回份额
-     * @param price 预期价格
      * @param transactionTime 交易时间
      * @param fee 手续费（可选）
      * @return 交易记录
      */
-    FundTransactionRecord createSellTransaction(String fundCode, BigDecimal amount, BigDecimal price,
+    FundTransactionRecord createSellTransaction(String fundCode, BigDecimal amount,
                                                 LocalDateTime transactionTime, BigDecimal fee);
 
     /**
