@@ -131,18 +131,18 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j</artifactId>
-            <version>0.31.0</version>
+            <version>1.0.0-beta1</version>
         </dependency>
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-open-ai</artifactId>
-            <version>0.31.0</version>
+            <version>1.0.0-beta1</version>
         </dependency>
-        <!-- 可选：Claude支持 -->
+        <!-- 可选：Claude 支持 -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-anthropic</artifactId>
-            <version>0.31.0</version>
+            <version>1.0.0-beta1</version>
         </dependency>
 
         <!-- 弹性和重试 -->
