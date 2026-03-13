@@ -52,7 +52,7 @@ public interface FundTransactionRecordRepository extends JpaRepository<FundTrans
     /**
      * 根据预计确认时间查询待确认的交易记录
      */
-    List<FundTransactionRecord> findByEstimatedConfirmDateBeforeAndStatus(LocalDateTime time, TransactionStatus status);
+    List<FundTransactionRecord> findByEstimatedConfirmDateBeforeAndStatus(LocalDate time, TransactionStatus status);
 
     /**
      * 查询指定持仓关联的交易记录

@@ -5,6 +5,7 @@ import com.shxc.fundagent.entity.FundHolding;
 import com.shxc.fundagent.entity.FundTransactionRecord;
 import com.shxc.fundagent.enums.TransactionStatus;
 import com.shxc.fundagent.enums.TransactionType;
+import com.shxc.fundagent.repository.FundDailyDataRepository;
 import com.shxc.fundagent.repository.FundHoldingRepository;
 import com.shxc.fundagent.repository.FundTransactionRecordRepository;
 import com.shxc.fundagent.service.FundDataService;
@@ -22,8 +23,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -42,8 +42,20 @@ public class FundTaskScheduler {
     private final CacheManager cacheManager;
     private final FundHoldingRepository fundHoldingRepository;
     private final FundTransactionRecordRepository fundTransactionRecordRepository;
+    private final FundDailyDataRepository fundDailyDataRepository;
+    private static final Set<LocalDate> tradeDays = new HashSet<>();
 
     // ================ 数据采集任务 ================
+
+    @Scheduled(cron = "0 0 0 * * MON-FRI")
+    public void init() {
+        log.info("美好的一天开始啦😘😘😘");
+        // 清理统计交易日的缓存
+        log.info("目前已经交易的日期 {}", tradeDays);
+        if (tradeDays.size() >= 10) {
+            tradeDays.clear();
+        }
+    }
 
     /**
      * 每日开盘数据采集（每个交易日9:30执行）
@@ -174,7 +186,7 @@ public class FundTaskScheduler {
      * 持仓收益计算（每个交易日20:00执行）
      * 计算所有持仓基金的收益情况
      */
-    @Scheduled(cron = "0 30 20 * * MON-FRI")
+//    @Scheduled(cron = "0 30 20 * * MON-FRI")
     public void calculateHoldingYields() {
         log.info("开始执行持仓收益计算任务...");
 
@@ -212,32 +224,81 @@ public class FundTaskScheduler {
         try {
             List<FundHolding> fundHoldings = fundHoldingRepository.findAllActiveHoldings();
             for (FundHolding fundHolding : fundHoldings) {
-                List<FundTransactionRecord> transactionRecords =
-                        fundTransactionRecordRepository.findActiveTransactionRecord(fundHolding.getFundCode());
-                if (transactionRecords.isEmpty()) continue;
-                BigDecimal holdingAmount = BigDecimal.ZERO; // 计算所有份额
-                BigDecimal realHoldingValue = BigDecimal.ZERO; // 实际持有价值 = sum(each total_amount * (1 - fee))
-                for (FundTransactionRecord record: transactionRecords) {
-                    if (!confirmedTransaction(record)) break;
-                    BigDecimal sign = new BigDecimal(record.getTransactionSign());
-                    holdingAmount = holdingAmount.add(record.getAmount().multiply(sign));
-                    // 实际持有价值 += 全部交易金额 * (1 - 手续费 / 100)
-                    realHoldingValue = realHoldingValue.add(record.getTotalCost().multiply(sign));
-                }
-                if (holdingAmount.compareTo(BigDecimal.ZERO) == 0) {
-                    fundHolding.setCostPrice(BigDecimal.ZERO);
-                    fundHolding.setHoldingAmount(BigDecimal.ZERO);
-                    fundHolding.setHoldingValue(BigDecimal.ZERO);
-                } else {
-                    BigDecimal costPrice = realHoldingValue.divide(holdingAmount, 4, RoundingMode.HALF_UP);
-                    fundHolding.setCostPrice(costPrice);
-                    fundHolding.setHoldingAmount(holdingAmount);
-                    fundHolding.setHoldingValue(realHoldingValue);
+                calculateHoldingCostPrice(fundHolding);
+                if (fundHolding.getHoldingAmount().equals(BigDecimal.ZERO)) {
+                    fundHolding.setStatus("SOLD");
                 }
             }
             fundHoldingRepository.saveAll(fundHoldings);
         } catch (Exception e) {
             log.error("持仓收益计算任务失败", e);
+        }
+    }
+
+    @Scheduled(cron = "0 */30 20-23 * * MON-FRI")
+    public void fallback() {
+        // 近七天净值计算失败的所有基金
+        List<FundDailyData> fundDailyData = fundDailyDataRepository.findByTradeDateBetween(LocalDate.now().minusDays(6), LocalDate.now());
+        List<FundDailyData> failedFundDailyData = fundDailyData.stream().filter(it -> it.getNetValue() == null).toList();
+        Map<String, List<FundDailyData>> failFundDataMap = failedFundDailyData.stream().collect(Collectors.groupingBy(FundDailyData::getFundCode, Collectors.toList()));
+        for (String fundCode: failFundDataMap.keySet()) {
+            log.info("基金 {} 净值计算失败，开始兜底", fundCode);
+            List<FundDailyData> datas = failFundDataMap.get(fundCode);
+            datas.sort(Comparator.comparing(FundDailyData::getTradeDate));
+            Map<LocalDate, FundDailyData> historyMap = fundDataService.getHistoryData(fundCode, datas.get(0).getTradeDate(), datas.get(datas.size() - 1).getTradeDate())
+                    .stream().collect(Collectors.toMap(FundDailyData::getTradeDate, it -> it));
+            for (FundDailyData data: datas) {
+                FundDailyData historyData = historyMap.get(data.getTradeDate());
+                if (historyData != null && historyData.getNetValue() != null) {
+                    log.info("基金 {} 于{}的净值成功，开始入库", fundCode, data.getTradeDate());
+                    data.setNetValue(historyData.getNetValue());
+                    data.setChangeRate(historyData.getChangeRate());
+                    fundDailyDataRepository.save(data);
+                }
+            }
+        }
+        // 获取所有需要确认的交易记录
+        List<String> toEstimate = fundTransactionRecordRepository.findByEstimatedConfirmDateBeforeAndStatus(LocalDate.now(), TransactionStatus.PENDING)
+                .stream().map(FundTransactionRecord::getFundCode).distinct().toList();
+        for (String record: toEstimate) {
+            FundHolding fundHolding = fundHoldingRepository.findAcitveHoldingByFundCode(record);
+            calculateHoldingCostPrice(fundHolding);
+            if (fundHolding.getHoldingAmount().equals(BigDecimal.ZERO)) {
+                fundHolding.setStatus("SOLD");
+            }
+            fundHoldingRepository.save(fundHolding);
+        }
+        List<FundTransactionRecord> records = fundTransactionRecordRepository.findByEstimatedConfirmDateBeforeAndStatus(LocalDate.now(), TransactionStatus.PENDING);
+        if (records.isEmpty() && !tradeDays.contains(LocalDate.now())) {
+            // 说明当前所有基金的交易记录已经确认 每天只执行一遍
+            tradeDays.add(LocalDate.now());
+            calculateHoldingYields();
+        }
+
+    }
+
+    private void calculateHoldingCostPrice(FundHolding fundHolding) {
+        List<FundTransactionRecord> transactionRecords =
+                fundTransactionRecordRepository.findActiveTransactionRecord(fundHolding.getFundCode());
+        if (transactionRecords.isEmpty()) return;
+        BigDecimal holdingAmount = BigDecimal.ZERO; // 计算所有份额
+        BigDecimal realHoldingValue = BigDecimal.ZERO; // 实际持有价值 = sum(each total_amount * (1 - fee))
+        for (FundTransactionRecord record: transactionRecords) {
+            if (!confirmedTransaction(record)) break;
+            BigDecimal sign = new BigDecimal(record.getTransactionSign());
+            holdingAmount = holdingAmount.add(record.getAmount().multiply(sign));
+            // 实际持有价值 += 全部交易金额 * (1 - 手续费 / 100)
+            realHoldingValue = realHoldingValue.add(record.getTotalCost().multiply(sign));
+        }
+        if (holdingAmount.compareTo(BigDecimal.ZERO) == 0) {
+            fundHolding.setCostPrice(BigDecimal.ZERO);
+            fundHolding.setHoldingAmount(BigDecimal.ZERO);
+            fundHolding.setHoldingValue(BigDecimal.ZERO);
+        } else {
+            BigDecimal costPrice = realHoldingValue.divide(holdingAmount, 4, RoundingMode.HALF_UP);
+            fundHolding.setCostPrice(costPrice);
+            fundHolding.setHoldingAmount(holdingAmount);
+            fundHolding.setHoldingValue(realHoldingValue);
         }
     }
 

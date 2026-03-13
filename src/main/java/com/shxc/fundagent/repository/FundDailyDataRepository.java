@@ -105,4 +105,5 @@ public interface FundDailyDataRepository extends JpaRepository<FundDailyData, Lo
      */
     @Query("SELECT MAX(d.tradeDate) FROM FundDailyData d")
     Optional<LocalDate> findLatestTradeDate();
+
 }
