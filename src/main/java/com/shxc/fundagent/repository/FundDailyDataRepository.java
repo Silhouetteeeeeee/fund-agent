@@ -29,6 +29,10 @@ public interface FundDailyDataRepository extends JpaRepository<FundDailyData, Lo
            "ORDER BY d.tradeDate DESC LIMIT 1")
     Optional<FundDailyData> findLatestByFundCode(@Param("fundCode") String fundCode);
 
+
+    @Query("SELECT d FROM FundDailyData d WHERE d.fundCode = :fundCode and d.netValue is not null" +
+            " ORDER BY d.tradeDate DESC LIMIT 1")
+    Optional<FundDailyData> findLatestEffectiveByFundCode(@Param("fundCode") String fundCode);
     /**
      * 根据基金代码查询历史数据（按日期倒序）
      */

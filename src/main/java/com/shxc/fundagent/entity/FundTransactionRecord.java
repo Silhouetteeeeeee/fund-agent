@@ -42,7 +42,7 @@ public class FundTransactionRecord {
     /**
      * 交易份额（正数）
      */
-    @Column(name = "amount", precision = 16, scale = 4)
+    @Column(name = "amount", precision = 16, scale = 2)
     private BigDecimal amount;
 
     /**

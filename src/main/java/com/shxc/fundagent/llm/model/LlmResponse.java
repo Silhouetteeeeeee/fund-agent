@@ -110,7 +110,7 @@ public class LlmResponse {
     private Integer totalTokens;
 
     /**
-     * 请求成本（单位：美元）
+     * 请求成本
      */
     private Double cost;
 

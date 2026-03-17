@@ -14,14 +14,16 @@ import java.util.Map;
  */
 public interface YieldCalculationService {
 
+
     /**
      * 计算单只基金收益率
      *
      * @param fundCode  基金代码
-     * @param costPrice 持仓成本（如果为null，使用平均持仓成本）
+     * @param specifiedCostPrice 持仓成本（如果为null，使用平均持仓成本）
+     * @oara calculationDate 计算日期
      * @return 收益率信息
      */
-    FundYield calculateFundYield(String fundCode, BigDecimal costPrice);
+    FundYield calculateFundYield(String fundCode, BigDecimal specifiedCostPrice);
 
     /**
      * 批量计算基金收益率
@@ -173,6 +175,7 @@ public interface YieldCalculationService {
         private LocalDate calculationDate;
 
         // getters and setters...
+
         public String getFundCode() { return fundCode; }
         public void setFundCode(String fundCode) { this.fundCode = fundCode; }
         public String getFundName() { return fundName; }

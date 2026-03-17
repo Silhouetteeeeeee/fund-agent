@@ -384,6 +384,15 @@ ai:
         max-tokens: 2000
         timeout-ms: 40000
 
+      deepseek:
+        enabled: true
+        api-key: ${DEEPSEEK_API_KEY:}
+        model: deepseek-chat
+        base-url: https://api.deepseek.com
+        temperature: 0.3
+        max-tokens: 8000
+        timeout-ms: 180000
+
     cost-control:
       enabled: true
       monthly-budget: 100.00  # 美元

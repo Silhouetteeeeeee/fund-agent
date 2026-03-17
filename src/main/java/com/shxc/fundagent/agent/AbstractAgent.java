@@ -71,7 +71,7 @@ public abstract class AbstractAgent implements Agent {
     }
 
     @Override
-    public AgentResult process(String task, Map<String, Object> context) {
+    public AgentResult process(String task, String msg) {
         long startTime = System.currentTimeMillis();
 
         try {
@@ -80,16 +80,11 @@ public abstract class AbstractAgent implements Agent {
                 return buildUnavailableResult();
             }
 
-            // 验证上下文
-            if (!validateContext(context)) {
-                return buildInvalidContextResult(context);
-            }
-
             // 设置状态为忙碌
             setStatus(AgentStatus.BUSY);
 
             // 实际处理（由子类实现）
-            AgentResult result = doProcess(task, context);
+            AgentResult result = doProcess(task, msg);
 
             // 设置处理时间
             result.setProcessingTimeMs(System.currentTimeMillis() - startTime);
@@ -111,8 +106,8 @@ public abstract class AbstractAgent implements Agent {
     }
 
     @Override
-    public CompletableFuture<AgentResult> processAsync(String task, Map<String, Object> context) {
-        return CompletableFuture.supplyAsync(() -> process(task, context), asyncExecutor);
+    public CompletableFuture<AgentResult> processAsync(String task, String msg) {
+        return CompletableFuture.supplyAsync(() -> process(task, msg), asyncExecutor);
     }
 
     @Override
@@ -186,11 +181,6 @@ public abstract class AbstractAgent implements Agent {
     public void setAsyncExecutor(ExecutorService asyncExecutor) {
         this.asyncExecutor = asyncExecutor;
     }
-
-    /**
-     * 实际处理任务的抽象方法（由子类实现）
-     */
-    protected abstract AgentResult doProcess(String task, Map<String, Object> context) throws Exception;
 
     /**
      * 验证上下文是否有效
@@ -320,4 +310,7 @@ public abstract class AbstractAgent implements Agent {
         }
         return false;
     }
+
+    protected abstract AgentResult doProcess(String task, String message) throws Exception;
+
 }

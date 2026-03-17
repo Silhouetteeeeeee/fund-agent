@@ -136,46 +136,46 @@ public class LlmDemoService {
     /**
      * 演示Agent框架使用
      */
-    public Map<String, Object> demonstrateAgentFramework() {
-        Map<String, Object> result = new HashMap<>();
-        result.put("demo", "agent_framework");
-
-        try {
-            // 1. 准备LLM提供商（Agent需要使用）
-            MockLlmProvider mockProvider = new MockLlmProvider("agent-mock", "agent-model");
-            mockProvider.setSmartReplies(true);
-            llmProviderFactory.registerProvider(mockProvider);
-
-            // 2. 演示Agent统计（此时还没有Agent注册）
-            Map<String, Object> agentStatsBefore = agentManager.getAgentStats();
-            result.put("agentStatsBefore", agentStatsBefore);
-
-            // 3. 创建一个简单的基金分析任务上下文
-            Map<String, Object> fundContext = new HashMap<>();
-            fundContext.put("fundCode", "000001");
-            fundContext.put("fundName", "华夏成长混合");
-            fundContext.put("netValue", "1.2345");
-            fundContext.put("changePercent", "1.23");
-            fundContext.put("riskLevel", "中风险");
-
-            // 4. 演示自动选择Agent（此时没有Agent，应返回错误）
-            AgentResult autoAgentResult = agentManager.processTask("分析基金投资价值", fundContext);
-            result.put("autoAgentResultWithoutAgents", autoAgentResult);
-
-            // 5. 演示Agent管理器功能
-            result.put("hasAgents", !agentManager.getAllAgents().isEmpty());
-            result.put("availableAgents", agentManager.getAvailableAgents().size());
-
-            logger.info("Agent framework demo completed successfully");
-
-        } catch (Exception e) {
-            result.put("success", false);
-            result.put("error", e.getMessage());
-            logger.error("Agent framework demo failed", e);
-        }
-
-        return result;
-    }
+//    public Map<String, Object> demonstrateAgentFramework() {
+//        Map<String, Object> result = new HashMap<>();
+//        result.put("demo", "agent_framework");
+//
+//        try {
+//            // 1. 准备LLM提供商（Agent需要使用）
+//            MockLlmProvider mockProvider = new MockLlmProvider("agent-mock", "agent-model");
+//            mockProvider.setSmartReplies(true);
+//            llmProviderFactory.registerProvider(mockProvider);
+//
+//            // 2. 演示Agent统计（此时还没有Agent注册）
+//            Map<String, Object> agentStatsBefore = agentManager.getAgentStats();
+//            result.put("agentStatsBefore", agentStatsBefore);
+//
+//            // 3. 创建一个简单的基金分析任务上下文
+//            Map<String, Object> fundContext = new HashMap<>();
+//            fundContext.put("fundCode", "000001");
+//            fundContext.put("fundName", "华夏成长混合");
+//            fundContext.put("netValue", "1.2345");
+//            fundContext.put("changePercent", "1.23");
+//            fundContext.put("riskLevel", "中风险");
+//
+//            // 4. 演示自动选择Agent（此时没有Agent，应返回错误）
+//            AgentResult autoAgentResult = agentManager.processTask("分析基金投资价值", fundContext);
+//            result.put("autoAgentResultWithoutAgents", autoAgentResult);
+//
+//            // 5. 演示Agent管理器功能
+//            result.put("hasAgents", !agentManager.getAllAgents().isEmpty());
+//            result.put("availableAgents", agentManager.getAvailableAgents().size());
+//
+//            logger.info("Agent framework demo completed successfully");
+//
+//        } catch (Exception e) {
+//            result.put("success", false);
+//            result.put("error", e.getMessage());
+//            logger.error("Agent framework demo failed", e);
+//        }
+//
+//        return result;
+//    }
 
     /**
      * 演示完整的LLM+Agent工作流
@@ -246,38 +246,38 @@ public class LlmDemoService {
         return result;
     }
 
-    /**
-     * 运行所有演示
-     */
-    public Map<String, Object> runAllDemos() {
-        Map<String, Object> allResults = new HashMap<>();
-        allResults.put("timestamp", System.currentTimeMillis());
-
-        logger.info("Starting all LLM and Agent demos...");
-
-        // 运行各个演示
-        allResults.put("basicLlmDemo", demonstrateBasicLlmCall());
-        allResults.put("multiProviderDemo", demonstrateMultiProviderManagement());
-        allResults.put("agentFrameworkDemo", demonstrateAgentFramework());
-        allResults.put("completeWorkflowDemo", demonstrateCompleteWorkflow());
-
-        // 汇总结果
-        boolean allSuccessful = true;
-        for (Map.Entry<String, Object> entry : allResults.entrySet()) {
-            if (entry.getValue() instanceof Map) {
-                Map<?, ?> demoResult = (Map<?, ?>) entry.getValue();
-                if (demoResult.containsKey("success") && Boolean.FALSE.equals(demoResult.get("success"))) {
-                    allSuccessful = false;
-                    break;
-                }
-            }
-        }
-
-        allResults.put("allSuccessful", allSuccessful);
-        logger.info("All demos completed. Overall success: {}", allSuccessful);
-
-        return allResults;
-    }
+//    /**
+//     * 运行所有演示
+//     */
+//    public Map<String, Object> runAllDemos() {
+//        Map<String, Object> allResults = new HashMap<>();
+//        allResults.put("timestamp", System.currentTimeMillis());
+//
+//        logger.info("Starting all LLM and Agent demos...");
+//
+//        // 运行各个演示
+//        allResults.put("basicLlmDemo", demonstrateBasicLlmCall());
+//        allResults.put("multiProviderDemo", demonstrateMultiProviderManagement());
+//        allResults.put("agentFrameworkDemo", demonstrateAgentFramework());
+//        allResults.put("completeWorkflowDemo", demonstrateCompleteWorkflow());
+//
+//        // 汇总结果
+//        boolean allSuccessful = true;
+//        for (Map.Entry<String, Object> entry : allResults.entrySet()) {
+//            if (entry.getValue() instanceof Map) {
+//                Map<?, ?> demoResult = (Map<?, ?>) entry.getValue();
+//                if (demoResult.containsKey("success") && Boolean.FALSE.equals(demoResult.get("success"))) {
+//                    allSuccessful = false;
+//                    break;
+//                }
+//            }
+//        }
+//
+//        allResults.put("allSuccessful", allSuccessful);
+//        logger.info("All demos completed. Overall success: {}", allSuccessful);
+//
+//        return allResults;
+//    }
 
     /**
      * 清理演示资源

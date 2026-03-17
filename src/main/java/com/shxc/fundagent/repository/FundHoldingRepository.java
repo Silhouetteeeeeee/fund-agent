@@ -33,16 +33,13 @@ public interface FundHoldingRepository extends JpaRepository<FundHolding, Long> 
     List<FundHolding> findByStatus(String status);
 
     /**
-     * 查询所有活跃持仓
-     */
-    @Query("SELECT h FROM FundHolding h WHERE h.status = 'ACTIVE'")
-    List<FundHolding> findAllActiveHoldings();
-
-    /**
      * 根据基金代码和持仓编号查询持仓记录
      */
     @Query("SELECT h FROM FundHolding h WHERE h.status = 'ACTIVE' and h.fundCode =:fundCode")
-    FundHolding findAcitveHoldingByFundCode(String fundCode);
+    FundHolding findActiveHoldingByFundCode(String fundCode);
+
+    @Query("SELECT h FROM FundHolding h WHERE h.calculateDate < :calculateDate ")
+    List<FundHolding> findFundHoldingsByCalculateDateBefore(LocalDate calculateDate);
 
     /**
      * 根据购买日期范围查询

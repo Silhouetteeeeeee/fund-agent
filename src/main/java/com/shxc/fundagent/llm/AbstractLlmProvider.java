@@ -134,7 +134,7 @@ public abstract class AbstractLlmProvider implements LlmProvider {
             if (now - lastErrorTime > CIRCUIT_BREAKER_RECOVERY_MS) {
                 available = true;
                 errorCount = 0;
-                logger.info("Circuit breaker recovered for provider: {}", providerName);
+                logger.info("熔断器恢复，提供商: {}", providerName);
             }
         }
         return available;
@@ -197,7 +197,7 @@ public abstract class AbstractLlmProvider implements LlmProvider {
             if (now - lastErrorTime > CIRCUIT_BREAKER_RECOVERY_MS) {
                 available = true;
                 errorCount = 0;
-                logger.info("Circuit breaker recovered for provider: {}", providerName);
+                logger.info("熔断器恢复，提供商: {}", providerName);
             } else {
                 throw new RuntimeException("Circuit breaker open for provider: " + providerName);
             }
@@ -213,7 +213,7 @@ public abstract class AbstractLlmProvider implements LlmProvider {
         response.setModel(modelName);
 
         // 记录成功日志
-        logger.debug("LLM call succeeded: provider={}, model={}, time={}ms",
+        logger.debug("LLM调用成功: 提供商={}, 模型={}, 耗时={}ms",
                 providerName, modelName, elapsedTime);
 
         // 重置错误计数
@@ -229,13 +229,13 @@ public abstract class AbstractLlmProvider implements LlmProvider {
         errorCount++;
         lastErrorTime = System.currentTimeMillis();
 
-        logger.error("LLM call failed: provider={}, model={}, time={}ms, error={}",
+        logger.error("LLM调用失败: 提供商={}, 模型={}, 耗时={}ms, 错误={}",
                 providerName, modelName, elapsedTime, e.getMessage(), e);
 
         // 如果错误次数过多，触发熔断
         if (errorCount >= MAX_ERROR_COUNT) {
             available = false;
-            logger.warn("Circuit breaker opened for provider: {} due to {} consecutive errors",
+            logger.warn("熔断器打开，提供商: {}，连续错误次数: {}",
                     providerName, errorCount);
         }
     }

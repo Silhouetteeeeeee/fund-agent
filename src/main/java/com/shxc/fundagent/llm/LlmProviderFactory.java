@@ -38,7 +38,7 @@ public class LlmProviderFactory {
         String providerName = provider.getProviderName();
 
         if (providers.containsKey(providerName)) {
-            logger.warn("LLM provider '{}' already registered, replacing", providerName);
+            logger.warn("LLM提供商 '{}' 已注册，正在替换", providerName);
         }
 
         providers.put(providerName, provider);
@@ -46,10 +46,10 @@ public class LlmProviderFactory {
         // 如果没有设置默认提供商，将第一个注册的设为默认
         if (defaultProviderName == null) {
             defaultProviderName = providerName;
-            logger.info("Set default LLM provider to: {}", providerName);
+            logger.info("设置默认LLM提供商为: {}", providerName);
         }
 
-        logger.info("LLM provider registered: {} ({})", providerName, provider.getModelName());
+        logger.info("LLM提供商注册: {} ({})", providerName, provider.getModelName());
     }
 
     /**
@@ -58,7 +58,7 @@ public class LlmProviderFactory {
     public void unregisterProvider(String providerName) {
         LlmProvider provider = providers.remove(providerName);
         if (provider != null) {
-            logger.info("LLM provider unregistered: {}", providerName);
+            logger.info("LLM提供商注销: {}", providerName);
 
             // 如果注销的是默认提供商，需要重新选择默认
             if (providerName.equals(defaultProviderName)) {
@@ -96,7 +96,7 @@ public class LlmProviderFactory {
             throw new IllegalArgumentException("Provider not registered: " + providerName);
         }
         this.defaultProviderName = providerName;
-        logger.info("Default LLM provider set to: {}", providerName);
+        logger.info("默认LLM提供商设置为: {}", providerName);
     }
 
     /**
@@ -178,7 +178,7 @@ public class LlmProviderFactory {
      */
     public void addProviderConfig(String providerName, ProviderConfig config) {
         providerConfigs.put(providerName, config);
-        logger.debug("Added config for provider: {}", providerName);
+        logger.debug("已添加提供商配置: {}", providerName);
     }
 
     /**
@@ -207,7 +207,7 @@ public class LlmProviderFactory {
         providers.clear();
         providerConfigs.clear();
         defaultProviderName = null;
-        logger.info("LlmProviderFactory shutdown completed");
+        logger.info("LlmProviderFactory 关闭完成");
     }
 
     /**
@@ -216,10 +216,10 @@ public class LlmProviderFactory {
     private void selectNewDefaultProvider() {
         if (!providers.isEmpty()) {
             defaultProviderName = providers.keySet().iterator().next();
-            logger.info("Auto-selected new default LLM provider: {}", defaultProviderName);
+            logger.info("自动选择新的默认LLM提供商: {}", defaultProviderName);
         } else {
             defaultProviderName = null;
-            logger.warn("No LLM providers available for default selection");
+            logger.warn("没有可用的LLM提供商用于默认选择");
         }
     }
 

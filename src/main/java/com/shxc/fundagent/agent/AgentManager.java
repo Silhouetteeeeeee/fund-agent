@@ -154,70 +154,70 @@ public class AgentManager {
         return selectedAgent;
     }
 
-    /**
-     * 处理任务（自动选择Agent）
-     */
-    public AgentResult processTask(String task, Map<String, Object> context) {
-        Agent agent = selectAgentForTask(task, context);
+//    /**
+//     * 处理任务（自动选择Agent）
+//     */
+//    public AgentResult processTask(String task, Map<String, Object> context) {
+//        Agent agent = selectAgentForTask(task, context);
+//
+//        if (agent == null) {
+//            return AgentResult.builder()
+//                    .status(AgentResult.Status.ERROR)
+//                    .content("No suitable agent found")
+//                    .errorMessage("No agent available for task: " + task)
+//                    .errorCode("NO_AGENT_AVAILABLE")
+//                    .build();
+//        }
+//
+//        return agent.process(task, context);
+//    }
 
-        if (agent == null) {
-            return AgentResult.builder()
-                    .status(AgentResult.Status.ERROR)
-                    .content("No suitable agent found")
-                    .errorMessage("No agent available for task: " + task)
-                    .errorCode("NO_AGENT_AVAILABLE")
-                    .build();
-        }
+//    /**
+//     * 异步处理任务
+//     */
+//    public CompletableFuture<AgentResult> processTaskAsync(String task, Map<String, Object> context) {
+//        Agent agent = selectAgentForTask(task, context);
+//
+//        if (agent == null) {
+//            return CompletableFuture.completedFuture(
+//                AgentResult.builder()
+//                    .status(AgentResult.Status.ERROR)
+//                    .content("No suitable agent found")
+//                    .errorMessage("No agent available for task: " + task)
+//                    .errorCode("NO_AGENT_AVAILABLE")
+//                    .build()
+//            );
+//        }
+//
+//        return agent.processAsync(task, context);
+//    }
 
-        return agent.process(task, context);
-    }
-
-    /**
-     * 异步处理任务
-     */
-    public CompletableFuture<AgentResult> processTaskAsync(String task, Map<String, Object> context) {
-        Agent agent = selectAgentForTask(task, context);
-
-        if (agent == null) {
-            return CompletableFuture.completedFuture(
-                AgentResult.builder()
-                    .status(AgentResult.Status.ERROR)
-                    .content("No suitable agent found")
-                    .errorMessage("No agent available for task: " + task)
-                    .errorCode("NO_AGENT_AVAILABLE")
-                    .build()
-            );
-        }
-
-        return agent.processAsync(task, context);
-    }
-
-    /**
-     * 指定Agent处理任务
-     */
-    public AgentResult processTaskWithAgent(String agentName, String task, Map<String, Object> context) {
-        Agent agent = getAgent(agentName);
-
-        if (agent == null) {
-            return AgentResult.builder()
-                    .status(AgentResult.Status.ERROR)
-                    .content("Agent not found")
-                    .errorMessage("Agent not found: " + agentName)
-                    .errorCode("AGENT_NOT_FOUND")
-                    .build();
-        }
-
-        if (!agent.isAvailable()) {
-            return AgentResult.builder()
-                    .status(AgentResult.Status.ERROR)
-                    .content("Agent not available")
-                    .errorMessage("Agent not available: " + agentName)
-                    .errorCode("AGENT_UNAVAILABLE")
-                    .build();
-        }
-
-        return agent.process(task, context);
-    }
+//    /**
+//     * 指定Agent处理任务
+//     */
+//    public AgentResult processTaskWithAgent(String agentName, String task, Map<String, Object> context) {
+//        Agent agent = getAgent(agentName);
+//
+//        if (agent == null) {
+//            return AgentResult.builder()
+//                    .status(AgentResult.Status.ERROR)
+//                    .content("Agent not found")
+//                    .errorMessage("Agent not found: " + agentName)
+//                    .errorCode("AGENT_NOT_FOUND")
+//                    .build();
+//        }
+//
+//        if (!agent.isAvailable()) {
+//            return AgentResult.builder()
+//                    .status(AgentResult.Status.ERROR)
+//                    .content("Agent not available")
+//                    .errorMessage("Agent not available: " + agentName)
+//                    .errorCode("AGENT_UNAVAILABLE")
+//                    .build();
+//        }
+//
+//        return agent.process(task, context);
+//    }
 
     /**
      * 获取Agent状态统计

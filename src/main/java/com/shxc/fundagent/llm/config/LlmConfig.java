@@ -27,7 +27,7 @@ public class LlmConfig {
      */
     @Bean
     public LlmProviderFactory llmProviderFactory() {
-        logger.info("Initializing LlmProviderFactory...");
+        logger.info("正在初始化 LlmProviderFactory...");
         return new LlmProviderFactory();
     }
 
@@ -37,7 +37,7 @@ public class LlmConfig {
     @Bean
     @ConditionalOnProperty(name = "ai.llm.providers.mock.enabled", havingValue = "true", matchIfMissing = true)
     public MockLlmProvider mockLlmProvider() {
-        logger.info("Registering Mock LLM provider...");
+        logger.info("正在注册 Mock LLM 提供商...");
 
         MockLlmProvider mockProvider = new MockLlmProvider();
 
@@ -73,7 +73,7 @@ public class LlmConfig {
     @Bean
     public boolean initializeLlmProviders(LlmProviderFactory factory,
                                           java.util.List<com.shxc.fundagent.llm.LlmProvider> providers) {
-        logger.info("Initializing LLM providers...");
+        logger.info("正在初始化 LLM 提供商...");
 
         try {
             // 注册所有提供商bean
@@ -81,10 +81,10 @@ public class LlmConfig {
                 String providerName = provider.getProviderName();
 
                 if (factory.hasProvider(providerName)) {
-                    logger.debug("Provider '{}' already registered, skipping", providerName);
+                    logger.debug("提供商 '{}' 已注册，跳过", providerName);
                 } else {
                     factory.registerProvider(provider);
-                    logger.info("Registered LLM provider: {} ({})", providerName, provider.getModelName());
+                    logger.info("LLM提供商注册: {} ({})", providerName, provider.getModelName());
                 }
             }
 
@@ -92,16 +92,16 @@ public class LlmConfig {
             String defaultProvider = llmProperties.getDefaultProvider();
             if (factory.hasProvider(defaultProvider)) {
                 factory.setDefaultProvider(defaultProvider);
-                logger.info("Default LLM provider set to: {}", defaultProvider);
+                logger.info("默认LLM提供商设置为: {}", defaultProvider);
             } else if (!factory.getAllProviders().isEmpty()) {
                 // 使用第一个可用的提供商作为默认
                 factory.setDefaultProvider(factory.getAllProviders().get(0).getProviderName());
-                logger.info("Auto-selected default LLM provider: {}", factory.getAllProviders().get(0).getProviderName());
+                logger.info("自动选择默认LLM提供商: {}", factory.getAllProviders().get(0).getProviderName());
             }
 
             // 打印提供商统计
             var stats = factory.getProviderStats();
-            logger.info("LLM providers initialized: total={}, available={}, default={}",
+            logger.info("LLM提供商初始化完成: 总数={}, 可用={}, 默认={}",
                     stats.get("totalProviders"),
                     stats.get("availableProviders"),
                     stats.get("defaultProvider"));
@@ -109,7 +109,7 @@ public class LlmConfig {
             return true;
 
         } catch (Exception e) {
-            logger.error("Failed to initialize LLM providers", e);
+            logger.error("初始化LLM提供商失败", e);
             return false;
         }
     }
@@ -120,7 +120,7 @@ public class LlmConfig {
     @Bean
     @ConditionalOnProperty(name = "ai.llm.cost-control.enabled", havingValue = "true")
     public CostMonitor costMonitor(LlmProviderFactory factory) {
-        logger.info("Initializing LLM cost monitor...");
+        logger.info("正在初始化 LLM 成本监控器...");
         return new CostMonitor(factory, llmProperties.getCostControl());
     }
 
@@ -134,7 +134,7 @@ public class LlmConfig {
         public CostMonitor(LlmProviderFactory factory, LlmProperties.CostControlProperties config) {
             this.factory = factory;
             this.config = config;
-            logger.info("Cost monitor configured with monthly budget: ${}", config.getMonthlyBudget());
+            logger.info("成本监控器配置完成，月度预算: ${}", config.getMonthlyBudget());
         }
 
         // 这里可以添加成本监控逻辑

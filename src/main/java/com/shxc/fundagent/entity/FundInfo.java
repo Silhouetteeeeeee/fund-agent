@@ -6,6 +6,7 @@ import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -61,11 +62,23 @@ public class FundInfo {
     @Column(name = "established_date")
     private LocalDate establishedDate;
 
+    @Column(name = "syl_1n")
+    private BigDecimal syl1n;
+
+    @Column(name = "syl_6y")
+    private BigDecimal syl6y;
+
+    @Column(name = "syl_3y")
+    private BigDecimal syl3y;
+
+    @Column(name = "syl_1y")
+    private BigDecimal syl1y;
+
     /**
      * 基金经理
      */
-    @Column(name = "manager", length = 50)
-    private String manager;
+    @Column(name = "manager_info", length = 50)
+    private String managerInfo;
 
     /**
      * 基金规模（亿元）

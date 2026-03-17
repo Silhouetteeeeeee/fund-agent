@@ -1,6 +1,7 @@
 package com.shxc.fundagent.dto.external;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Column;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -91,6 +92,18 @@ public class FundBasicInfoDTO {
     @JsonProperty("risklevel")
     private String riskLevel;
 
+    @JsonProperty( "syl_1n")
+    private String syl1n;
+
+    @JsonProperty("syl_6y")
+    private String syl6y;
+
+    @JsonProperty("syl_3y")
+    private String syl3y;
+
+    @JsonProperty("syl_1y")
+    private String syl1y;
+
     /**
      * 获取成立日期（LocalDate类型）
      */
@@ -167,22 +180,24 @@ public class FundBasicInfoDTO {
     /**
      * 根据基金类型字符串转换为枚举类型
      */
-    public String getFundTypeNormalized() {
-        if (fundType == null) {
+    public String getFundTypeNormalized(String fundName) {
+        if (fundName == null) {
             return "OTHER";
         }
 
-        if (fundType.contains("混合")) {
-            return "MIXED";
-        } else if (fundType.contains("股票")) {
-            return "STOCK";
-        } else if (fundType.contains("指数")) {
+        // 优先级 1：指数型（包含"指数"或"中证"、"上证"等指数特征词）
+        if (fundName.contains("指数") || fundName.contains("中证")
+                || fundName.contains("上证") || fundName.contains("深证") || fundName.contains("ETF")) {
             return "INDEX";
-        } else if (fundType.contains("债券")) {
+        } else if (fundName.contains("股票")) {
+            return "STOCK";
+        } else if (fundName.contains("混合")) {
+            return "MIXED";
+        } else if (fundName.contains("债券")) {
             return "BOND";
-        } else if (fundType.contains("货币")) {
+        } else if (fundName.contains("货币")) {
             return "MONEY_MARKET";
-        } else if (fundType.contains("QDII")) {
+        } else if (fundName.contains("QDII")) {
             return "QDII";
         } else {
             return "OTHER";

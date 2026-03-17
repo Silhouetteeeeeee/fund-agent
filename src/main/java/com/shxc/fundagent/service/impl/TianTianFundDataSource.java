@@ -7,6 +7,7 @@ import com.shxc.fundagent.dto.external.FundBasicInfoDTO;
 import com.shxc.fundagent.dto.external.FundHistoryDataDTO;
 import com.shxc.fundagent.dto.external.FundRealTimeDataDTO;
 import com.shxc.fundagent.service.FundDataSource;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -26,9 +27,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * 天天基金网数据源实现
@@ -176,7 +181,6 @@ public class TianTianFundDataSource implements FundDataSource {
                     // 天天基金网历史数据API返回的是包含在特定格式中的JSON
                     String body = response.body().string();
                     // 这里需要根据实际返回格式进行解析
-                    // 由于格式较复杂，这里简化处理
                     List<FundHistoryDataDTO.HistoryDataItem> items =
                             parseHtmlDataToDTO(body.substring(12, body.length() - 1)
                                     .replaceAll("([{, ])(\\w+)(:)", "$1\"$2\"$3"));
@@ -231,7 +235,6 @@ public class TianTianFundDataSource implements FundDataSource {
                     // 天天基金网历史数据API返回的是包含在特定格式中的JSON
                     String body = response.body().string();
                     // 这里需要根据实际返回格式进行解析
-                    // 由于格式较复杂，这里简化处理
                     List<FundHistoryDataDTO.HistoryDataItem> items = parseHtmlDataToDTO(body.substring(12, body.length() - 1)
                             .replaceAll("([{, ])(\\w+)(:)", "$1\"$2\"$3"));
                     // 实际实现需要解析具体的返回格式
@@ -426,19 +429,48 @@ public class TianTianFundDataSource implements FundDataSource {
 
             // 示例：从JavaScript中提取基金名称
             String namePattern = "fS_name = \"([^\"]+)\"";
-            java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(namePattern);
-            java.util.regex.Matcher matcher = pattern.matcher(jsContent);
+            Pattern pattern = Pattern.compile(namePattern);
+            Matcher matcher = pattern.matcher(jsContent);
             if (matcher.find()) {
                 info.setName(matcher.group(1));
             }
 
-            // 示例：从JavaScript中提取基金类型
-            String typePattern = "fS_type = \"([^\"]+)\"";
-            pattern = java.util.regex.Pattern.compile(typePattern);
+            String managerPattern = "Data_currentFundManager\\s*=\\s*\\[([\\s\\S]*?)\\];";
+            pattern = Pattern.compile(managerPattern);
+            matcher = pattern.matcher(jsContent);
+            String jsonString = "";
+            if (matcher.find()) {
+                jsonString = matcher.group(1);
+            }
+            FundManagerInfoVo[] managerInfoVo = objectMapper.readValue("[" + jsonString + "]", FundManagerInfoVo[].class);
+            if (managerInfoVo != null) {
+                info.setManager(Arrays.stream(managerInfoVo).map(FundManagerInfoVo::toString).collect(Collectors.joining(";")));
+            }
+            String syl1nPattern = "var\\s+syl_1n\\s*=\\s*\"([^\"]+)\"";
+            pattern = Pattern.compile(syl1nPattern);
             matcher = pattern.matcher(jsContent);
             if (matcher.find()) {
-                info.setFundType(matcher.group(1));
+                info.setSyl1n(matcher.group(1));
             }
+            String syl6yPattern = "var\\s+syl_6y\\s*=\\s*\"([^\"]+)\"";
+            pattern = Pattern.compile(syl6yPattern);
+            matcher = pattern.matcher(jsContent);
+            if (matcher.find()) {
+                info.setSyl6y(matcher.group(1));
+            }
+            String syl3yPattern = "var\\s+syl_3y\\s*=\\s*\"([^\"]+)\"";
+            pattern = Pattern.compile(syl3yPattern);
+            matcher = pattern.matcher(jsContent);
+            if (matcher.find()) {
+                info.setSyl3y(matcher.group(1));
+            }
+            String syl1yPattern = "var\\s+syl_1y\\s*=\\s*\"([^\"]+)\"";
+            pattern = Pattern.compile(syl1yPattern);
+            matcher = pattern.matcher(jsContent);
+            if (matcher.find()) {
+                info.setSyl1y(matcher.group(1));
+            }
+
 
             return info;
         } catch (Exception e) {
@@ -507,6 +539,20 @@ public class TianTianFundDataSource implements FundDataSource {
         }
 
         return navList;
+    }
+
+    @Data
+    private static class FundManagerInfoVo {
+        String id;
+        String name;
+        Integer star;
+        String workTime;
+        String fundSize;
+
+        @Override
+        public String toString() {
+            return "姓名:%s,星级:%s星,工作时长:%s,管理基金规模:%s".formatted(name, star, workTime, fundSize);
+        }
     }
 
 }

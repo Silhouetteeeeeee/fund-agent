@@ -125,7 +125,7 @@ public class FundDailyData {
         } else if (estimateValue != null && estimateValue.compareTo(BigDecimal.ZERO) > 0) {
             return estimateValue;
         }
-        return BigDecimal.ZERO;
+        return null;
     }
 
     /**

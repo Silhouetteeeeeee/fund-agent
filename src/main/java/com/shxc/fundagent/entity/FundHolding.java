@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -45,6 +46,9 @@ public class FundHolding {
      */
     @Column(name = "holding_value", precision = 16, scale = 2)
     private BigDecimal holdingValue;
+
+    @Column(name = "calculate_date")
+    private LocalDate calculateDate;
 
     /**
      * 购买日期
@@ -134,7 +138,7 @@ public class FundHolding {
      * @param currentPrice 当前价格
      */
     public void updateHoldingValue(BigDecimal currentPrice) {
-        if (currentPrice != null && holdingAmount != null && "ACTIVE".equals(status)) {
+        if (currentPrice != null && holdingAmount != null) {
             this.holdingValue = currentPrice.multiply(holdingAmount);
         } else {
             this.holdingValue = BigDecimal.ZERO;
@@ -185,18 +189,27 @@ public class FundHolding {
 
     /**
      * 获取持仓收益（兼容性方法，需要当前价格）
-     * 注意：此方法需要当前价格，暂返回0
+     */
+    public BigDecimal getHoldProfit(BigDecimal netValue) {
+        return netValue.subtract(costPrice).multiply(holdingAmount);
+    }
+    /**
+     * 获取持仓收益 前提是holdingValue已经计算正确
      */
     public BigDecimal getHoldProfit() {
-        return BigDecimal.ZERO;
+        return holdingValue.subtract(costPrice).multiply(holdingAmount);
     }
 
     /**
      * 获取持仓收益率（兼容性方法，需要当前价格）
-     * 注意：此方法需要当前价格，暂返回0
      */
+    public BigDecimal getHoldProfitRate(BigDecimal netValue) {
+        return netValue.subtract(costPrice).divide(costPrice, 4, RoundingMode.HALF_UP);
+    }
+
     public BigDecimal getHoldProfitRate() {
-        return BigDecimal.ZERO;
+        BigDecimal netValue = holdingValue.divide(holdingAmount, 4, RoundingMode.HALF_UP);
+        return getHoldProfitRate(netValue);
     }
 
     /**

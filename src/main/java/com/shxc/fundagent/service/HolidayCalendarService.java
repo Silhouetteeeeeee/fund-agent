@@ -6,5 +6,7 @@ public interface HolidayCalendarService {
 
     boolean isTradeDay(LocalDate day);
 
+    LocalDate findLatestTradeDay(LocalDate day);
+
 
 }

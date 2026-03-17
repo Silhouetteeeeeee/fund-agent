@@ -281,9 +281,11 @@ public class FundDataServiceImpl implements FundDataService {
     @Override
     public BigDecimal getCurrentPrice(String fundCode) {
         // 优先获取当天的实时数据
-        FundDailyData latestData = getRealTimeData(fundCode);
-        if (latestData != null && latestData.getEffectivePrice().compareTo(BigDecimal.ZERO) > 0) {
-            return latestData.getEffectivePrice();
+        if (isTradingDay(LocalDate.now())) {
+            FundDailyData latestData = getRealTimeData(fundCode);
+            if (latestData != null && latestData.getEffectivePrice().compareTo(BigDecimal.ZERO) > 0) {
+                return latestData.getEffectivePrice();
+            }
         }
 
         // 其次获取最新的历史数据
@@ -818,7 +820,7 @@ public class FundDataServiceImpl implements FundDataService {
         info.setFundName(dto.getName());
 
         // 转换基金类型
-        String normalizedType = dto.getFundTypeNormalized();
+        String normalizedType = dto.getFundTypeNormalized(dto.getName());
         try {
             FundType fundType = FundType.valueOf(normalizedType);
             info.setFundType(fundType);
@@ -830,7 +832,11 @@ public class FundDataServiceImpl implements FundDataService {
         info.setRiskLevel(dto.getRiskLevelAsInteger());
         info.setFundCompany(dto.getCompany());
         info.setEstablishedDate(dto.getEstablishDateAsLocalDate());
-        info.setManager(dto.getManager());
+        info.setManagerInfo(dto.getManager());
+        info.setSyl1n(new BigDecimal(dto.getSyl1n()));
+        info.setSyl6y(new BigDecimal(dto.getSyl6y()));
+        info.setSyl3y(new BigDecimal(dto.getSyl3y()));
+        info.setSyl1y(new BigDecimal(dto.getSyl1y()));
         info.setFundSize(convertToDouble(dto.getScaleAsBigDecimal()));
         info.setManagementFee(convertToDouble(dto.getManagementFeeAsBigDecimal()));
         info.setCustodyFee(convertToDouble(dto.getCustodyFeeAsBigDecimal()));
@@ -937,8 +943,8 @@ public class FundDataServiceImpl implements FundDataService {
         if (newInfo.getEstablishedDate() != null) {
             existing.setEstablishedDate(newInfo.getEstablishedDate());
         }
-        if (newInfo.getManager() != null) {
-            existing.setManager(newInfo.getManager());
+        if (newInfo.getManagerInfo() != null) {
+            existing.setManagerInfo(newInfo.getManagerInfo());
         }
         if (newInfo.getFundSize() != null) {
             existing.setFundSize(newInfo.getFundSize());
@@ -954,6 +960,18 @@ public class FundDataServiceImpl implements FundDataService {
         }
         if (newInfo.getRemark() != null) {
             existing.setRemark(newInfo.getRemark());
+        }
+        if (newInfo.getSyl1n() != null) {
+            existing.setSyl1n(newInfo.getSyl1n());
+        }
+        if (newInfo.getSyl6y() != null) {
+            existing.setSyl6y(newInfo.getSyl6y());
+        }
+        if (newInfo.getSyl3y() != null) {
+            existing.setSyl3y(newInfo.getSyl3y());
+        }
+        if (newInfo.getSyl1y() != null) {
+            existing.setSyl1y(newInfo.getSyl1y());
         }
     }
 

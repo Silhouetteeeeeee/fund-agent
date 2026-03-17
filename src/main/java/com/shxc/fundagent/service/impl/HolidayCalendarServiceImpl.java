@@ -2,6 +2,7 @@ package com.shxc.fundagent.service.impl;
 
 import com.shxc.fundagent.repository.HolidayCalendarRepository;
 import com.shxc.fundagent.service.HolidayCalendarService;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +21,15 @@ public class HolidayCalendarServiceImpl implements HolidayCalendarService {
         return day.getDayOfWeek() != DayOfWeek.SATURDAY
                 && day.getDayOfWeek() != DayOfWeek.SUNDAY
                 && !holidayCalendarRepository.existsByDate(day);
+    }
+
+
+    @Override
+    public LocalDate findLatestTradeDay(LocalDate day) {
+        while (!isTradeDay(day)) {
+            day = day.minusDays(1);
+        }
+        return day;
     }
 
 }

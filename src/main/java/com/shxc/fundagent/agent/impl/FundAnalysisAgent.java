@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 基金分析Agent
@@ -27,24 +28,44 @@ public class FundAnalysisAgent extends AbstractAgent {
      */
     private String defaultLlmProvider = "mock";
 
+    private String llmProvider = "deepseek";
+
     /**
-     * 分析提示模板
+     * 分析提示模板 - 多只基金版本
      */
-    private String analysisPromptTemplate = "你是一个专业的基金分析师。请分析以下基金信息并给出投资建议。\n" +
-            "基金信息：\n" +
-            "基金代码：{fundCode}\n" +
-            "基金名称：{fundName}\n" +
-            "净值：{netValue}\n" +
-            "涨跌幅：{changePercent}%\n" +
-            "风险评估：{riskLevel}\n" +
+    private String multiAnalysisPromptTemplate = "你是一个专业的基金分析师。请根据以下 {fundCount} 只基金的信息和持仓情况进行分析并给出投资建议。\n" +
+            "\n" +
+            "=== 基金列表及持仓 ===\n" +
+            "{fundList}\n" +
+            "\n" +
+            "=== 整体账户情况 ===\n" +
+            "总资产：{totalAssets} 元\n" +
+            "总投入：{totalCost} 元\n" +
+            "总收益：{totalProfit} 元\n" +
+            "总收益率：{totalProfitRate}%\n" +
+            "可用资金：{availableCash} 元\n" +
+            "目标仓位：{targetPosition}%\n" +
             "\n" +
             "请提供以下分析：\n" +
-            "1. 基金当前状态评估\n" +
-            "2. 投资建议（买入/持有/卖出）\n" +
-            "3. 风险提示\n" +
-            "4. 未来展望\n" +
+            "1. **整体市场评估**：基于这些基金的表现，分析当前市场状况\n" +
+            "2. **逐只基金分析**：对每只基金分别进行评估\n" +
+            "   - 当前状态（表现优劣）\n" +
+            "   - 持仓盈亏分析\n" +
+            "   - 投资建议（买入/持有/卖出）及操作建议\n" +
+            "   - 主要风险点\n" +
+            "3. **组合分析**：\n" +
+            "   - 当前仓位是否合理\n" +
+            "   - 资产配置是否均衡\n" +
+            "   - 是否需要调仓及如何调仓\n" +
+            "4. **风险提示**：整体风险和个别风险提示\n" +
+            "5. **未来展望**：短期和长期展望\n" +
             "\n" +
-            "请用中文回复，保持专业且易于理解。";
+            "要求：\n" +
+            "- 使用表格或结构化格式呈现，便于对比\n" +
+            "- 突出表现最好和最差的基金\n" +
+            "- 给出具体的操作建议（包括加仓/减仓金额）\n" +
+            "- 用中文回复，保持专业且易于理解";
+
 
     public FundAnalysisAgent() {
         super(
@@ -57,26 +78,16 @@ public class FundAnalysisAgent extends AbstractAgent {
                 "market-analysis"      // 市场分析
             },
             new String[] {
-                "fundCode",        // 基金代码
-                "fundName",        // 基金名称
-                "netValue",        // 净值
-                "changePercent",   // 涨跌幅
-                "riskLevel"        // 风险评估
+                "funds"          // 多只基金
             }
         );
     }
 
     @Override
-    protected AgentResult doProcess(String task, Map<String, Object> context) throws Exception {
-        // 1. 提取和验证上下文信息
-        validateRequiredContext(context);
-
-        // 2. 构建分析提示
-        String prompt = buildAnalysisPrompt(context);
-
+    protected AgentResult doProcess(String task, String message) throws Exception {
         // 3. 调用LLM进行分析
         LlmProvider llmProvider = getLlmProvider();
-        LlmRequest request = createLlmRequest(prompt);
+        LlmRequest request = createLlmRequest(message);
 
         var llmResponse = llmProvider.call(request);
 
@@ -85,34 +96,106 @@ public class FundAnalysisAgent extends AbstractAgent {
         }
 
         // 4. 解析和构建结果
-        return buildAnalysisResult(llmResponse.getContent(), context);
+        return buildAnalysisResult(llmResponse.getContent());
     }
 
     /**
-     * 验证必需的上下文信息
+     * 验证上下文并选择模板
      */
-    private void validateRequiredContext(Map<String, Object> context) {
-        // 基础验证已在父类中完成，这里可以添加特定验证
-        if (!context.containsKey("fundCode") || !context.containsKey("fundName")) {
-            throw new IllegalArgumentException("基金分析和必需的上下文信息：fundCode, fundName");
+    private String validateAndSelectTemplate(Map<String, Object> context) {
+        if (context.containsKey("funds")) {
+            Object fundsObj = context.get("funds");
+            if (!(fundsObj instanceof List)) {
+                throw new IllegalArgumentException("funds 必须是 List 类型");
+            }
+            List<?> funds = (List<?>) fundsObj;
+            if (funds.isEmpty()) {
+                throw new IllegalArgumentException("funds 列表不能为空");
+            }
+            return multiAnalysisPromptTemplate;
         }
+        throw new IllegalArgumentException("不能不包含funds");
     }
 
     /**
-     * 构建分析提示
+     * 构建多基金提示词
      */
-    private String buildAnalysisPrompt(Map<String, Object> context) {
-        String prompt = analysisPromptTemplate;
+    private String buildMultiFundPrompt(String prompt, Map<String, Object> context) {
+        List<Map<String, Object>> funds = (List<Map<String, Object>>) context.get("funds");
 
-        // 替换模板中的变量
-        for (Map.Entry<String, Object> entry : context.entrySet()) {
-            String key = "{" + entry.getKey() + "}";
-            String value = entry.getValue() != null ? entry.getValue().toString() : "未知";
-            prompt = prompt.replace(key, value);
+        StringBuilder fundListBuilder = new StringBuilder();
+        for (int i = 0; i < funds.size(); i++) {
+            Map<String, Object> fund = funds.get(i);
+            fundListBuilder.append("--- 基金 ").append(i + 1).append(" ---\n");
+            fundListBuilder.append("基金代码：").append(fund.getOrDefault("fundCode", "未知")).append("\n");
+            fundListBuilder.append("基金名称：").append(fund.getOrDefault("fundName", "未知")).append("\n");
+            fundListBuilder.append("当前净值：").append(fund.getOrDefault("netValue", "未知")).append("\n");
+            fundListBuilder.append("今日涨跌幅：").append(fund.getOrDefault("changePercent", "未知")).append("%\n");
+            fundListBuilder.append("风险评估：").append(fund.getOrDefault("riskLevel", "未知")).append("\n");
+
+            // 持仓信息
+            fundListBuilder.append("\n【我的持仓】\n");
+            fundListBuilder.append("持有份额：").append(formatNumber(fund.get("holdShares"))).append(" 份\n");
+            fundListBuilder.append("持仓市值：").append(formatNumber(fund.get("holdAmount"))).append(" 元\n");
+            fundListBuilder.append("持仓成本：").append(formatNumber(fund.get("avgCost"))).append(" 元\n");
+            fundListBuilder.append("投入本金：").append(formatNumber(fund.get("costAmount"))).append(" 元\n");
+            fundListBuilder.append("持有收益：").append(formatNumber(fund.get("profit"))).append(" 元\n");
+            fundListBuilder.append("持有收益率：").append(formatNumber(fund.get("profitRate"))).append("%\n");
+            fundListBuilder.append("仓位占比：").append(formatPosition(fund.get("position"))).append("%\n");
+            fundListBuilder.append("持有天数：").append(formatNumber(fund.get("holdDays"))).append(" 天\n");
+
+            if (fund.containsKey("yieldRate")) {
+                fundListBuilder.append("今年以来收益：").append(formatNumber(fund.get("yieldRate"))).append("%\n");
+            }
+            if (fund.containsKey("holdIndustry")) {
+                fundListBuilder.append("持仓行业：").append(fund.get("holdIndustry")).append("\n");
+            }
+            fundListBuilder.append("\n");
         }
+
+        prompt = prompt.replace("{fundCount}", String.valueOf(funds.size()));
+        prompt = prompt.replace("{fundList}", fundListBuilder.toString().trim());
+
+        // 替换整体账户信息
+        prompt = prompt.replace("{totalAssets}", formatNumber(context.get("totalAssets")));
+        prompt = prompt.replace("{totalCost}", formatNumber(context.get("totalCost")));
+        prompt = prompt.replace("{totalProfit}", formatNumber(context.get("totalProfit")));
+        prompt = prompt.replace("{totalProfitRate}", formatNumber(context.get("totalProfitRate")));
+        prompt = prompt.replace("{availableCash}", formatNumber(context.get("availableCash")));
+        prompt = prompt.replace("{targetPosition}", formatPosition(context.get("targetPosition")));
 
         return prompt;
     }
+
+    /**
+     * 格式化数字（保留 2 位小数）
+     */
+    private String formatNumber(Object value) {
+        if (value == null) return "0.00";
+        try {
+            return String.format("%.2f", Double.parseDouble(value.toString()));
+        } catch (Exception e) {
+            return value.toString();
+        }
+    }
+
+    /**
+     * 格式化仓位（转换为百分比）
+     */
+    private String formatPosition(Object position) {
+        if (position == null) return "0.00";
+        try {
+            double pos = Double.parseDouble(position.toString());
+            // 如果是 0-1 之间的小数，转换为百分比
+            if (pos >= 0 && pos <= 1) {
+                return String.format("%.2f", pos * 100);
+            }
+            return String.format("%.2f", pos);
+        } catch (Exception e) {
+            return position.toString();
+        }
+    }
+
 
     /**
      * 获取LLM提供商
@@ -149,23 +232,16 @@ public class FundAnalysisAgent extends AbstractAgent {
     /**
      * 构建分析结果
      */
-    private AgentResult buildAnalysisResult(String analysis, Map<String, Object> context) {
-        // 解析分析内容（简单实现）
-        String fundCode = context.get("fundCode").toString();
-        String fundName = context.get("fundName").toString();
-
+    private AgentResult buildAnalysisResult(String analysis) {
         // 构建结果对象
         Map<String, Object> resultContent = Map.of(
-                "fundCode", fundCode,
-                "fundName", fundName,
                 "analysis", analysis,
                 "timestamp", System.currentTimeMillis()
         );
 
         // 计算置信度（简单实现，实际应根据分析质量计算）
-        double confidence = calculateConfidence(analysis);
 
-        return buildSuccessResult(resultContent, confidence, "使用LLM进行基金分析");
+        return buildSuccessResult(resultContent, 1d, "使用LLM进行基金分析");
     }
 
     /**
@@ -214,17 +290,16 @@ public class FundAnalysisAgent extends AbstractAgent {
         this.defaultLlmProvider = defaultLlmProvider;
     }
 
-    /**
-     * 设置分析提示模板
-     */
-    public void setAnalysisPromptTemplate(String analysisPromptTemplate) {
-        this.analysisPromptTemplate = analysisPromptTemplate;
+    public String getMultiAnalysisPromptTemplate() {
+        return multiAnalysisPromptTemplate;
     }
 
-    /**
-     * 获取分析提示模板
-     */
-    public String getAnalysisPromptTemplate() {
-        return analysisPromptTemplate;
+    public void setMultiAnalysisPromptTemplate(String multiAnalysisPromptTemplate) {
+        this.multiAnalysisPromptTemplate = multiAnalysisPromptTemplate;
+    }
+
+    @Override
+    public CompletableFuture<AgentResult> processAsync(String task, String msg) {
+        return null;
     }
 }

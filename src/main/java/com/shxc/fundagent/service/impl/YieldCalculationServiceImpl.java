@@ -3,7 +3,6 @@ package com.shxc.fundagent.service.impl;
 import com.shxc.fundagent.entity.FundDailyData;
 import com.shxc.fundagent.entity.FundHolding;
 import com.shxc.fundagent.entity.FundInfo;
-import com.shxc.fundagent.enums.FundType;
 import com.shxc.fundagent.repository.FundDailyDataRepository;
 import com.shxc.fundagent.repository.FundHoldingRepository;
 import com.shxc.fundagent.repository.FundInfoRepository;
@@ -58,20 +57,22 @@ public class YieldCalculationServiceImpl implements YieldCalculationService {
 
         FundYield fundYield = new FundYield();
         fundYield.setFundCode(fundCode);
-        fundYield.setCalculationDate(LocalDate.now());
 
         try {
             // 1. 获取基金基本信息
             FundInfo fundInfo = fundDataService.getFundBasicInfo(fundCode);
-            FundHolding holding = fundHoldingRepository.findAcitveHoldingByFundCode(fundCode);
-            if (fundInfo == null) {
+            FundHolding holding = fundHoldingRepository.findActiveHoldingByFundCode(fundCode);
+            if (holding == null || fundInfo == null) {
                 log.warn("Fund info not found for: {}", fundCode);
                 return fundYield;
             }
+            LocalDate calculateDate = holding.getCalculateDate();
             fundYield.setFundName(fundInfo.getFundName());
+            fundYield.setCalculationDate(calculateDate);
 
             // 2. 获取当前价格
-            BigDecimal currentPrice = fundDataService.getCurrentPrice(fundCode);
+            List<FundDailyData> historyData = fundDataService.getHistoryData(fundCode, calculateDate, calculateDate);
+            BigDecimal currentPrice = historyData.stream().map(FundDailyData::getNetValue).findFirst().orElse(null);
             fundYield.setCurrentPrice(currentPrice);
             if (currentPrice == null) {
                 log.warn("Current Price isn null for fund: {}", fundCode);
@@ -141,7 +142,7 @@ public class YieldCalculationServiceImpl implements YieldCalculationService {
 
         try {
             // 1. 获取所有活跃持仓
-            List<FundHolding> activeHoldings = fundHoldingRepository.findAllActiveHoldings();
+            List<FundHolding> activeHoldings = fundHoldingRepository.findByStatus("ACTIVE");
             portfolioYield.setHoldingCount(activeHoldings.size());
 
             if (activeHoldings.isEmpty()) {
@@ -459,7 +460,7 @@ public class YieldCalculationServiceImpl implements YieldCalculationService {
 
         try {
             // 1. 获取所有活跃持仓
-            List<FundHolding> activeHoldings = fundHoldingRepository.findAllActiveHoldings();
+            List<FundHolding> activeHoldings = fundHoldingRepository.findByStatus("ACTIVE");
             if (activeHoldings.isEmpty()) {
                 log.info("No active holdings for asset allocation analysis");
                 return analysis;
@@ -588,7 +589,7 @@ public class YieldCalculationServiceImpl implements YieldCalculationService {
         log.debug("Batch updating holding values");
 
         try {
-            List<FundHolding> activeHoldings = fundHoldingRepository.findAllActiveHoldings();
+            List<FundHolding> activeHoldings = fundHoldingRepository.findByStatus("ACTIVE");
             Map<String, BigDecimal> currentPrices = new HashMap<>();
 
             int updatedCount = 0;
@@ -749,7 +750,7 @@ public class YieldCalculationServiceImpl implements YieldCalculationService {
 
         try {
             // 1. 持仓统计
-            List<FundHolding> activeHoldings = fundHoldingRepository.findAllActiveHoldings();
+            List<FundHolding> activeHoldings = fundHoldingRepository.findByStatus("ACTIVE");
             int holdingCount = activeHoldings.size();
 
             // 2. 收益统计

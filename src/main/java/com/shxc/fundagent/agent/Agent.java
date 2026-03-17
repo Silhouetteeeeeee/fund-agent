@@ -17,7 +17,7 @@ public interface Agent {
      * @param context 上下文信息
      * @return 处理结果
      */
-    AgentResult process(String task, Map<String, Object> context);
+    AgentResult process(String task, String msg);
 
     /**
      * 异步处理任务
@@ -25,7 +25,7 @@ public interface Agent {
      * @param context 上下文信息
      * @return 异步处理结果
      */
-    CompletableFuture<AgentResult> processAsync(String task, Map<String, Object> context);
+    CompletableFuture<AgentResult> processAsync(String task, String msg);
 
     /**
      * 获取Agent名称

@@ -7,12 +7,17 @@ import com.shxc.fundagent.llm.model.LlmResponse;
 import com.shxc.fundagent.llm.model.Message;
 import com.shxc.fundagent.llm.model.ToolCall;
 import dev.langchain4j.data.message.*;
+import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -24,12 +29,17 @@ import java.util.stream.Collectors;
  */
 public abstract class LangChain4jProvider extends AbstractLlmProvider {
 
-    private static final Logger logger = LoggerFactory.getLogger(LangChain4jProvider.class);
+    protected static final Logger logger = LoggerFactory.getLogger(LangChain4jProvider.class);
 
     /**
      * LangChain4j聊天模型
      */
     protected ChatLanguageModel chatModel;
+
+    /**
+     * JSON对象映射器
+     */
+    protected static final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * 是否启用详细日志
@@ -49,18 +59,18 @@ public abstract class LangChain4jProvider extends AbstractLlmProvider {
             List<ChatMessage> chatMessages = convertToLangChain4jMessages(request);
 
             if (verboseLogging) {
-                logger.debug("Sending request to {}: {} messages, model={}",
+                logger.debug("发送请求到 {}: {} 条消息, 模型={}",
                         providerName, chatMessages.size(), modelName);
             }
 
             // 调用LangChain4j模型
-            Response<AiMessage> response = chatModel.generate(chatMessages);
+            ChatResponse response = chatModel.chat(chatMessages);
 
             // 转换为通用响应
             LlmResponse llmResponse = convertToLlmResponse(response, request, System.currentTimeMillis() - startTime);
 
             if (verboseLogging) {
-                logger.debug("Received response from {}: {} tokens, finishReason={}",
+                logger.debug("收到来自 {} 的响应: {} tokens, 结束原因={}",
                         providerName, llmResponse.getTotalTokens(), llmResponse.getFinishReason());
             }
 
@@ -124,10 +134,21 @@ public abstract class LangChain4jProvider extends AbstractLlmProvider {
             case TOOL:
                 // 工具消息
                 if (message.getToolCallId() != null) {
-                    return ToolExecutionResultMessage.from(message.getToolCallId(), message.getContent());
+                    // 创建简单的ToolExecutionRequest
+                    ToolExecutionRequest toolRequest = ToolExecutionRequest.builder()
+                            .id(message.getToolCallId())
+                            .name("unknown_tool")
+                            .arguments("{}")
+                            .build();
+                    return ToolExecutionResultMessage.from(toolRequest, message.getContent());
                 } else {
                     logger.warn("Tool message without tool call ID, content: {}", message.getContent());
-                    return ToolExecutionResultMessage.from("unknown", message.getContent());
+                    ToolExecutionRequest unknownToolRequest = ToolExecutionRequest.builder()
+                            .id("unknown")
+                            .name("unknown_tool")
+                            .arguments("{}")
+                            .build();
+                    return ToolExecutionResultMessage.from(unknownToolRequest, message.getContent());
                 }
 
             default:
@@ -139,20 +160,36 @@ public abstract class LangChain4jProvider extends AbstractLlmProvider {
     /**
      * 将LangChain4j响应转换为通用响应
      */
-    protected LlmResponse convertToLlmResponse(Response<AiMessage> response, LlmRequest request, long responseTimeMs) {
-        AiMessage aiMessage = response.content();
+    protected LlmResponse convertToLlmResponse(ChatResponse response, LlmRequest request, long responseTimeMs) {
+        AiMessage aiMessage = response.aiMessage();
         String content = aiMessage.text();
 
         // 提取工具调用信息
         List<ToolCall> toolCalls = null;
         if (aiMessage.hasToolExecutionRequests()) {
             toolCalls = aiMessage.toolExecutionRequests().stream()
-                    .map(toolRequest -> ToolCall.builder()
-                            .id(UUID.randomUUID().toString()) // LangChain4j没有提供ID，生成一个
-                            .type("function")
-                            .name(toolRequest.name())
-                            .arguments(toolRequest.arguments())
-                            .build())
+                    .map(toolRequest -> {
+                        try {
+                            // 解析JSON参数
+                            Map<String, Object> argumentsMap = parseArguments(toolRequest.arguments());
+
+                            return ToolCall.builder()
+                                    .id(UUID.randomUUID().toString()) // LangChain4j没有提供ID，生成一个
+                                    .type("function")
+                                    .name(toolRequest.name())
+                                    .arguments(argumentsMap)
+                                    .build();
+                        } catch (Exception e) {
+                            logger.warn("Failed to parse tool arguments: {}", e.getMessage());
+                            // 返回基本工具调用
+                            return ToolCall.builder()
+                                    .id(UUID.randomUUID().toString())
+                                    .type("function")
+                                    .name(toolRequest.name())
+                                    .arguments(new HashMap<>())
+                                    .build();
+                        }
+                    })
                     .collect(Collectors.toList());
         }
 
@@ -218,6 +255,21 @@ public abstract class LangChain4jProvider extends AbstractLlmProvider {
      */
     public ChatLanguageModel getChatModel() {
         return chatModel;
+    }
+
+    /**
+     * 解析工具参数JSON字符串
+     */
+    protected Map<String, Object> parseArguments(String argumentsJson) {
+        try {
+            if (argumentsJson == null || argumentsJson.trim().isEmpty()) {
+                return new HashMap<>();
+            }
+            return objectMapper.readValue(argumentsJson, new TypeReference<Map<String, Object>>() {});
+        } catch (Exception e) {
+            logger.warn("Failed to parse arguments JSON: {}", argumentsJson, e);
+            return new HashMap<>();
+        }
     }
 
     /**

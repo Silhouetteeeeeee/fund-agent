@@ -2,8 +2,8 @@ package com.shxc.fundagent.llm.impl;
 
 import com.shxc.fundagent.llm.ProviderType;
 import com.shxc.fundagent.llm.config.LlmProperties;
+import com.shxc.fundagent.llm.model.LlmRequest;
 import dev.langchain4j.model.openai.OpenAiChatModel;
-import dev.langchain4j.model.openai.OpenAiChatModelName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
@@ -19,9 +19,12 @@ import java.util.Map;
 @ConditionalOnProperty(name = "ai.llm.providers.openai.enabled", havingValue = "true")
 public class OpenAiProvider extends LangChain4jProvider {
 
+    // 常用模型名称常量
+    private static final String DEFAULT_MODEL = "gpt-3.5-turbo";
+
     @Autowired
     public OpenAiProvider(LlmProperties llmProperties) {
-        super("openai", OpenAiChatModelName.GPT_3_5_TURBO.toString(), ProviderType.OPENAI);
+        super("openai", DEFAULT_MODEL, ProviderType.OPENAI);
 
         // 从配置中获取OpenAI设置
         LlmProperties.ProviderProperties config = llmProperties.getProviders().get("openai");
@@ -32,7 +35,7 @@ public class OpenAiProvider extends LangChain4jProvider {
         // 构建OpenAiChatModel
         OpenAiChatModel.OpenAiChatModelBuilder builder = OpenAiChatModel.builder()
                 .apiKey(config.getApiKey())
-                .modelName(config.getModel() != null ? config.getModel() : OpenAiChatModelName.GPT_3_5_TURBO.toString())
+                .modelName(config.getModel() != null ? config.getModel() : DEFAULT_MODEL)
                 .temperature(config.getTemperature() != null ? config.getTemperature() : 0.7)
                 .maxTokens(config.getMaxTokens() != null ? config.getMaxTokens() : 1000)
                 .timeout(config.getTimeoutMs() != null ? Duration.ofMillis(config.getTimeoutMs()) : Duration.ofSeconds(30));
