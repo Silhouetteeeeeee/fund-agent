@@ -2,6 +2,7 @@ package com.shxc.fundagent.entity;
 
 import com.shxc.fundagent.enums.InvestmentFrequency;
 import com.shxc.fundagent.enums.InvestmentPlanStatus;
+import com.shxc.fundagent.utils.TradeDayUtils;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
@@ -146,7 +147,7 @@ public class RegularInvestmentPlan {
         // 根据频率计算下次执行日期
         switch (frequency) {
             case DAILY:
-                nextDate = today.plusDays(1);
+                nextDate = TradeDayUtils.findNextTradeDay(today.plusDays(1), frequency);
                 break;
             case WEEKLY:
                 if (investmentDay != null && investmentDay >= 1 && investmentDay <= 7) {
@@ -156,10 +157,11 @@ public class RegularInvestmentPlan {
                     if (daysToAdd <= 0) {
                         daysToAdd += 7;
                     }
-                    nextDate = today.plusDays(daysToAdd);
+                    nextDate = TradeDayUtils.findNextTradeDay(today.plusDays(daysToAdd), frequency);
                 } else {
                     // 默认每周一
                     nextDate = today.plusDays((8 - today.getDayOfWeek().getValue()) % 7);
+                    nextDate = TradeDayUtils.findNextTradeDay(nextDate, frequency);
                 }
                 break;
             case MONTHLY:

@@ -471,6 +471,13 @@ public class TianTianFundDataSource implements FundDataSource {
                 info.setSyl1y(matcher.group(1));
             }
 
+            String fundRatePattern = "var\\s+fund_Rate\\s*=\\s*\"([^\"]+)\"";
+            pattern = Pattern.compile(fundRatePattern);
+            matcher = pattern.matcher(jsContent);
+            if (matcher.find()) {
+                info.setFeeRate(matcher.group(1));
+            }
+
 
             return info;
         } catch (Exception e) {

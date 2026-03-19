@@ -104,6 +104,9 @@ public class FundBasicInfoDTO {
     @JsonProperty("syl_1y")
     private String syl1y;
 
+    @JsonProperty("fee_rate")
+    private String feeRate;
+
     /**
      * 获取成立日期（LocalDate类型）
      */

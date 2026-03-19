@@ -225,17 +225,14 @@ public class RegularInvestmentPlanServiceImpl implements RegularInvestmentPlanSe
             throw new IllegalStateException("计划今天不需要执行，下次执行日期: " + plan.getNextExecutionDate());
         }
 
-        // 计算手续费
-        BigDecimal fee = plan.calculateFeeAmount();
 
         // 调用交易服务创建购买交易
         // 使用当前时间作为交易时间
-        LocalDateTime transactionTime = LocalDateTime.now();
         var transaction = transactionService.createBuyTransaction(
                 plan.getFundCode(),
                 plan.getAmount(),
-                transactionTime,
-                fee
+                plan.getNextExecutionDate().atTime(11, 0, 0),
+                plan.getFeeRate()
         );
 
         // 更新计划的下次执行日期

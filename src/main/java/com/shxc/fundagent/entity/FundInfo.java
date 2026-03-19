@@ -124,6 +124,9 @@ public class FundInfo {
     @Column(name = "update_time")
     private LocalDateTime updateTime;
 
+    @Column(name = "fee_rate")
+    private BigDecimal feeRate;
+
     /**
      * 无参构造函数
      */

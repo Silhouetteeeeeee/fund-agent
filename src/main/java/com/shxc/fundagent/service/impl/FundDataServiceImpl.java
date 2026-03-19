@@ -837,6 +837,7 @@ public class FundDataServiceImpl implements FundDataService {
         info.setSyl6y(new BigDecimal(dto.getSyl6y()));
         info.setSyl3y(new BigDecimal(dto.getSyl3y()));
         info.setSyl1y(new BigDecimal(dto.getSyl1y()));
+        info.setFeeRate(new BigDecimal(dto.getFeeRate()));
         info.setFundSize(convertToDouble(dto.getScaleAsBigDecimal()));
         info.setManagementFee(convertToDouble(dto.getManagementFeeAsBigDecimal()));
         info.setCustodyFee(convertToDouble(dto.getCustodyFeeAsBigDecimal()));
@@ -972,6 +973,9 @@ public class FundDataServiceImpl implements FundDataService {
         }
         if (newInfo.getSyl1y() != null) {
             existing.setSyl1y(newInfo.getSyl1y());
+        }
+        if (newInfo.getFeeRate() != null) {
+            existing.setFeeRate(newInfo.getFeeRate());
         }
     }
 
