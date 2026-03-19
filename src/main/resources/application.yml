@@ -385,7 +385,7 @@ ai:
         timeout-ms: 40000
 
       deepseek:
-        enabled: true
+        enabled: false
         api-key: ${DEEPSEEK_API_KEY:}
         model: deepseek-chat
         base-url: https://api.deepseek.com

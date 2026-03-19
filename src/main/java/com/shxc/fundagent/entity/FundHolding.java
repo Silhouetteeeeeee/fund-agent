@@ -32,19 +32,19 @@ public class FundHolding {
     /**
      * 持仓成本价
      */
-    @Column(name = "cost_price", nullable = false, precision = 10, scale = 4)
+    @Column(name = "cost_price", nullable = false)
     private BigDecimal costPrice;
 
     /**
      * 持仓份额
      */
-    @Column(name = "holding_amount", nullable = false, precision = 16, scale = 2)
+    @Column(name = "holding_amount", nullable = false)
     private BigDecimal holdingAmount;
 
     /**
      * 持仓市值（冗余字段，便于查询）
      */
-    @Column(name = "holding_value", precision = 16, scale = 2)
+    @Column(name = "holding_value")
     private BigDecimal holdingValue;
 
     @Column(name = "calculate_date")
@@ -71,13 +71,13 @@ public class FundHolding {
     /**
      * 卖出价格
      */
-    @Column(name = "sell_price", precision = 10, scale = 4)
+    @Column(name = "sell_price")
     private BigDecimal sellPrice;
 
     /**
      * 卖出收益
      */
-    @Column(name = "sell_profit", precision = 16, scale = 2)
+    @Column(name = "sell_profit")
     private BigDecimal sellProfit;
 
     /**

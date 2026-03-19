@@ -22,6 +22,9 @@ AGENT*.md
 *.iml
 *.ipr
 
+### CLAUDE CODE ###
+.claude
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/

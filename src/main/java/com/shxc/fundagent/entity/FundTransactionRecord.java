@@ -42,31 +42,31 @@ public class FundTransactionRecord {
     /**
      * 交易份额（正数）
      */
-    @Column(name = "amount", precision = 16, scale = 2)
+    @Column(name = "amount")
     private BigDecimal amount;
 
     /**
      * 交易价格（单位净值）
      */
-    @Column(name = "price", precision = 10, scale = 4)
+    @Column(name = "price")
     private BigDecimal price;
 
     /**
      * 交易金额（份额 × 价格）
      */
-    @Column(name = "total_amount", nullable = false, precision = 16, scale = 2)
+    @Column(name = "total_amount", nullable = false)
     private BigDecimal totalAmount;
 
     /**
      * 手续费
      */
-    @Column(name = "fee", precision = 10, scale = 2)
+    @Column(name = "fee")
     private BigDecimal fee = BigDecimal.ZERO;
 
     /**
      * 实际确认份额（考虑手续费后）
      */
-    @Column(name = "confirmed_amount", precision = 16, scale = 2)
+    @Column(name = "confirmed_amount")
     private BigDecimal confirmedAmount;
 
     /**

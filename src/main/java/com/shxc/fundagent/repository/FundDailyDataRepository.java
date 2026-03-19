@@ -22,6 +22,8 @@ public interface FundDailyDataRepository extends JpaRepository<FundDailyData, Lo
      */
     Optional<FundDailyData> findByFundCodeAndTradeDate(String fundCode, LocalDate tradeDate);
 
+    Optional<FundDailyData> findFirstByFundCodeAndTradeDateLessThanEqualOrderByTradeDateDesc(String fundCode, LocalDate tradeDate);
+
     /**
      * 根据基金代码查询最新数据
      */

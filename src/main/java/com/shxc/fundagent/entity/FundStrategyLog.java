@@ -37,37 +37,37 @@ public class FundStrategyLog {
     /**
      * 当日收益率（%）
      */
-    @Column(name = "yield_rate", nullable = false, precision = 6, scale = 2)
+    @Column(name = "yield_rate", nullable = false)
     private BigDecimal yieldRate;
 
     /**
      * 日涨跌幅（%）
      */
-    @Column(name = "daily_change", precision = 6, scale = 2)
+    @Column(name = "daily_change")
     private BigDecimal dailyChange;
 
     /**
      * 周涨跌幅（%）
      */
-    @Column(name = "weekly_change", precision = 6, scale = 2)
+    @Column(name = "weekly_change")
     private BigDecimal weeklyChange;
 
     /**
      * 月涨跌幅（%）
      */
-    @Column(name = "monthly_change", precision = 6, scale = 2)
+    @Column(name = "monthly_change")
     private BigDecimal monthlyChange;
 
     /**
      * 当前价格
      */
-    @Column(name = "current_price", precision = 10, scale = 4)
+    @Column(name = "current_price")
     private BigDecimal currentPrice;
 
     /**
      * 持仓成本
      */
-    @Column(name = "cost_price", precision = 10, scale = 4)
+    @Column(name = "cost_price")
     private BigDecimal costPrice;
 
     /**
@@ -98,7 +98,7 @@ public class FundStrategyLog {
     /**
      * 决策置信度（0-1）
      */
-    @Column(name = "confidence", precision = 3, scale = 2)
+    @Column(name = "confidence")
     private BigDecimal confidence;
 
     /**

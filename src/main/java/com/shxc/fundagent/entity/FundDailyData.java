@@ -38,43 +38,43 @@ public class FundDailyData {
     /**
      * 单位净值
      */
-    @Column(name = "net_value", precision = 10, scale = 4)
+    @Column(name = "net_value")
     private BigDecimal netValue;
 
     /**
      * 实时估值
      */
-    @Column(name = "estimate_value", precision = 10, scale = 4)
+    @Column(name = "estimate_value")
     private BigDecimal estimateValue;
 
     /**
      * 日涨跌幅（%）
      */
-    @Column(name = "change_rate", precision = 6, scale = 2)
+    @Column(name = "change_rate")
     private BigDecimal changeRate;
 
     /**
      * 成交额（万元）
      */
-    @Column(name = "turnover", precision = 16, scale = 2)
+    @Column(name = "turnover")
     private BigDecimal turnover;
 
     /**
      * 换手率（%）
      */
-    @Column(name = "turnover_rate", precision = 6, scale = 2)
+    @Column(name = "turnover_rate")
     private BigDecimal turnoverRate;
 
     /**
      * 市盈率
      */
-    @Column(name = "pe_ratio", precision = 10, scale = 2)
+    @Column(name = "pe_ratio")
     private BigDecimal peRatio;
 
     /**
      * 市净率
      */
-    @Column(name = "pb_ratio", precision = 10, scale = 2)
+    @Column(name = "pb_ratio")
     private BigDecimal pbRatio;
 
     /**

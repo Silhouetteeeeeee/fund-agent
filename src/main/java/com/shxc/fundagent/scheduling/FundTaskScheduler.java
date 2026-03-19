@@ -1,7 +1,13 @@
 package com.shxc.fundagent.scheduling;
 
-import com.shxc.fundagent.agent.impl.FundAnalysisAgent;
+import com.shxc.fundagent.agent.agents.impl.v2.FundAnalysisAgentV2;
+import com.shxc.fundagent.agent.agents.impl.v2.MarketPerceptionAgent;
+import com.shxc.fundagent.agent.agents.impl.v2.NewsAnalysisAgent;
+import com.shxc.fundagent.agent.agents.impl.v2.TradingPlanAgent;
+import com.shxc.fundagent.agent.manager.EnhancedAgentManager;
+import com.shxc.fundagent.agent.model.v2.AgentContext;
 import com.shxc.fundagent.agent.model.AgentResult;
+import com.shxc.fundagent.attribution.model.BrinsonAttributionResult;
 import com.shxc.fundagent.entity.FundDailyData;
 import com.shxc.fundagent.entity.FundHolding;
 import com.shxc.fundagent.entity.FundInfo;
@@ -15,7 +21,6 @@ import com.shxc.fundagent.repository.FundInfoRepository;
 import com.shxc.fundagent.repository.FundTransactionRecordRepository;
 import com.shxc.fundagent.service.*;
 import com.shxc.fundagent.strategy.StrategyDecisionEngine;
-import dev.ai4j.openai4j.Json;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.CacheManager;
@@ -32,6 +37,7 @@ import java.util.stream.Collectors;
 
 import com.shxc.fundagent.strategy.model.FundPositionContext;
 import com.shxc.fundagent.strategy.model.PortfolioContext;
+import com.shxc.fundagent.attribution.BrinsonAttributionService;
 
 /**
  * 定时任务调度器
@@ -53,7 +59,17 @@ public class FundTaskScheduler {
     private final FundInfoRepository fundInfoRepository;
     private final RegularInvestmentPlanService regularInvestmentPlanService;
     private final HolidayCalendarService holidayCalendarService;
-    private final FundAnalysisAgent fundAnalysisAgent;
+    private final BrinsonAttributionService brinsonAttributionService;
+
+    // v2 Agent相关依赖
+    private final EnhancedAgentManager enhancedAgentManager;
+    private final FundAnalysisAgentV2 fundAnalysisAgentV2;
+    private final MarketPerceptionAgent marketPerceptionAgent;
+    private final NewsAnalysisAgent newsAnalysisAgent;
+    private final TradingPlanAgent tradingPlanAgent;
+
+    // 市场感知数据服务
+    private final MarketPerceptionDataService marketPerceptionDataService;
 
     // 持仓状态常量
     private static final String HOLDING_STATUS_ACTIVE = "ACTIVE";
@@ -214,6 +230,162 @@ public class FundTaskScheduler {
                 .targetPosition(new BigDecimal("0.5"))
                 .currentPosition(totalHoldingValue.divide(totalHoldingValue.add(BigDecimal.valueOf(100000)), 2, RoundingMode.HALF_UP))
                 .build();
+    }
+
+    // ================ v2 Agent任务 ================
+
+    /**
+     * 市场环境感知任务（每个交易日9:25执行）
+     * 采集开盘前的市场数据，评估市场环境，并存储到数据库
+     */
+    @Scheduled(cron = "0 25 9 * * MON-FRI")
+    public void collectMarketPerceptionData() {
+        executeScheduledTask("市场环境感知任务", () -> {
+            if (marketPerceptionAgent != null) {
+                log.info("开始执行市场环境感知...");
+                try {
+                    // 创建Agent上下文
+                    AgentContext context = AgentContext.builder()
+                            .task("collect-market-data")
+                            .message("采集开盘市场环境数据")
+                            .build();
+
+                    AgentResult result = marketPerceptionAgent.processWithTools("collect-market-data", context);
+                    if (result.isSuccess()) {
+                        log.info("市场环境感知完成: {}", result.getStatus());
+
+                        // 存储到数据库
+                        if (marketPerceptionDataService != null) {
+                            var savedData = marketPerceptionDataService.saveMarketPerceptionData(result);
+                            if (savedData != null) {
+                                log.info("市场感知数据已保存到数据库，ID: {}", savedData.getId());
+
+                                // 输出市场摘要
+                                String summary = marketPerceptionDataService.getTodayMarketSummary();
+                                log.info("今日市场摘要:\n{}", summary);
+                            } else {
+                                log.warn("市场感知数据保存失败");
+                            }
+                        } else {
+                            log.warn("MarketPerceptionDataService未配置，数据未持久化");
+                        }
+
+                        // 同时将结果存储到缓存供其他Agent使用
+                        // TODO: 可以存储到Redis缓存
+                    } else {
+                        log.warn("市场环境感知失败: {}", result.getErrorMessage());
+                    }
+                } catch (Exception e) {
+                    log.error("市场环境感知任务异常", e);
+                }
+            } else {
+                log.warn("MarketPerceptionAgent未配置，跳过市场环境感知任务");
+            }
+        });
+    }
+
+    /**
+     * 新闻资讯采集任务（每个交易日9:45执行）
+     * 采集财经新闻资讯，进行情感分析
+     */
+    @Scheduled(cron = "0 45 9 * * MON-FRI")
+    public void collectNewsAnalysisData() {
+        executeScheduledTask("新闻资讯采集任务", () -> {
+            if (newsAnalysisAgent != null) {
+                log.info("开始执行新闻资讯采集...");
+                try {
+                    AgentContext context = AgentContext.builder()
+                            .task("collect-news-data")
+                            .message("采集财经新闻资讯")
+                            .build();
+
+                    AgentResult result = newsAnalysisAgent.processWithTools("collect-news-data", context);
+                    if (result.isSuccess()) {
+                        log.info("新闻资讯采集完成: {}", result.getStatus());
+                    } else {
+                        log.warn("新闻资讯采集失败: {}", result.getErrorMessage());
+                    }
+                } catch (Exception e) {
+                    log.error("新闻资讯采集任务异常", e);
+                }
+            } else {
+                log.warn("NewsAnalysisAgent未配置，跳过新闻资讯采集任务");
+            }
+        });
+    }
+
+    /**
+     * 增强型基金分析任务（每个交易日10:30执行）
+     * 整合市场、新闻、持仓数据，执行增强型基金分析
+     */
+    @Scheduled(cron = "0 30 10 * * MON-FRI")
+    public void performEnhancedFundAnalysis() {
+        executeScheduledTask("增强型基金分析任务", () -> {
+            if (fundAnalysisAgentV2 != null) {
+                log.info("开始执行增强型基金分析...");
+                try {
+                    // 准备分析上下文
+                    AgentContext context = AgentContext.builder()
+                            .task("enhanced-analysis")
+                            .message("整合市场、新闻、持仓数据的增强型基金分析")
+                            .build();
+
+                    // 这里应该添加市场数据、新闻数据、持仓数据到上下文
+                    // 目前简化实现，让Agent自己获取需要的数据
+
+                    AgentResult result = fundAnalysisAgentV2.processWithTools("enhanced-analysis", context);
+                    if (result.isSuccess()) {
+                        log.info("增强型基金分析完成: {}", result.getStatus());
+                        // 分析结果可以用于后续的交易计划生成
+                        if (result.getExtraData() != null && result.getExtraData().containsKey("structuredAnalysis")) {
+                            log.debug("分析结果已生成，可用于交易计划");
+                        }
+                    } else {
+                        log.warn("增强型基金分析失败: {}", result.getErrorMessage());
+                    }
+                } catch (Exception e) {
+                    log.error("增强型基金分析任务异常", e);
+                }
+            } else {
+                log.warn("FundAnalysisAgentV2未配置，跳过增强型基金分析任务");
+            }
+        });
+    }
+
+    /**
+     * 交易计划生成任务（每个交易日15:30执行）
+     * 基于基金分析结果生成具体的交易计划
+     */
+    @Scheduled(cron = "0 30 15 * * MON-FRI")
+    public void generateTradingPlan() {
+        executeScheduledTask("交易计划生成任务", () -> {
+            if (tradingPlanAgent != null) {
+                log.info("开始生成交易计划...");
+                try {
+                    AgentContext context = AgentContext.builder()
+                            .task("generate-trading-plan")
+                            .message("基于分析结果生成交易计划")
+                            .build();
+
+                    // 这里应该添加基金分析结果到上下文
+                    // 目前简化实现，让Agent自己获取需要的数据
+
+                    AgentResult result = tradingPlanAgent.processWithTools("generate-trading-plan", context);
+                    if (result.isSuccess()) {
+                        log.info("交易计划生成完成: {}", result.getStatus());
+                        if (result.getContent() != null) {
+                            log.info("交易计划已生成，可执行或审核");
+                        }
+                    } else {
+                        log.warn("交易计划生成失败: {}", result.getErrorMessage());
+                    }
+                } catch (Exception e) {
+                    log.error("交易计划生成任务异常", e);
+                }
+            } else {
+                log.warn("TradingPlanAgent未配置，跳过交易计划生成任务");
+            }
+        });
     }
 
     /**
@@ -515,6 +687,114 @@ public class FundTaskScheduler {
             log.debug("任务状态检查...");
             // 这里可以检查定时任务的执行状态，记录日志等
         });
+    }
+
+    // ================ 归因分析任务 ================
+
+    /**
+     * 月度Brinson归因分析（每月第一个交易日21:00执行）
+     * 计算上一个月的归因分析
+     */
+    @Scheduled(cron = "0 0 21 1 * ?")
+    public void performMonthlyAttribution() {
+        executeScheduledTask("月度归因分析任务", () -> {
+            LocalDate endDate = LocalDate.now().minusDays(1);
+            LocalDate startDate = endDate.minusMonths(1).withDayOfMonth(1);
+
+            log.info("开始执行月度Brinson归因分析: {} 至 {}", startDate, endDate);
+
+            try {
+                BrinsonAttributionResult result = brinsonAttributionService.performAttribution(startDate, endDate);
+
+                log.info("月度归因分析完成");
+                log.info("组合收益: {:.2f}%, 基准收益: {:.2f}%, 超额收益: {:.2f}%",
+                        result.getPortfolioReturn().multiply(new BigDecimal("100")),
+                        result.getBenchmarkReturn().multiply(new BigDecimal("100")),
+                        result.getExcessReturn().multiply(new BigDecimal("100")));
+                log.info("资产配置效应: {:.2f}%, 证券选择效应: {:.2f}%, 交互效应: {:.2f}%",
+                        result.getAllocationEffect().multiply(new BigDecimal("100")),
+                        result.getSelectionEffect().multiply(new BigDecimal("100")),
+                        result.getInteractionEffect().multiply(new BigDecimal("100")));
+
+                // 发送归因分析报告通知
+                sendAttributionReportNotification(result);
+
+            } catch (Exception e) {
+                log.error("月度归因分析失败", e);
+            }
+        });
+    }
+
+    /**
+     * 季度Brinson归因分析（每季度末月最后一个交易日21:30执行）
+     * 计算本季度的归因分析
+     */
+    @Scheduled(cron = "0 30 21 L 3,6,9,12 ?")
+    public void performQuarterlyAttribution() {
+        executeScheduledTask("季度归因分析任务", () -> {
+            LocalDate endDate = LocalDate.now();
+            LocalDate startDate = endDate.minusMonths(3).withDayOfMonth(1);
+
+            log.info("开始执行季度Brinson归因分析: {} 至 {}", startDate, endDate);
+
+            try {
+                BrinsonAttributionResult result = brinsonAttributionService.performAttribution(startDate, endDate);
+
+                log.info("季度归因分析完成");
+                log.info(result.getSummary());
+
+                // 发送季度归因分析报告
+                sendQuarterlyAttributionReport(result);
+
+            } catch (Exception e) {
+                log.error("季度归因分析失败", e);
+            }
+        });
+    }
+
+    /**
+     * 发送归因分析报告通知
+     */
+    private void sendAttributionReportNotification(BrinsonAttributionResult result) {
+        // 这里可以集成通知服务，发送归因分析报告
+        StringBuilder message = new StringBuilder();
+        message.append("📊 月度归因分析报告\n");
+        message.append(String.format("分析周期: %s 至 %s\n", result.getStartDate(), result.getEndDate()));
+        message.append(String.format("组合收益: %.2f%%\n", result.getPortfolioReturn().multiply(new BigDecimal("100"))));
+        message.append(String.format("超额收益: %.2f%%\n", result.getExcessReturn().multiply(new BigDecimal("100"))));
+        message.append(String.format("配置贡献: %.2f%% | 选基贡献: %.2f%%\n",
+                result.getAllocationEffect().multiply(new BigDecimal("100")),
+                result.getSelectionEffect().multiply(new BigDecimal("100"))));
+
+        // 添加配置风格
+        if (result.getAllocationAnalysis() != null) {
+            message.append(String.format("配置风格: %s\n", result.getAllocationAnalysis().getAllocationStyle()));
+        }
+
+        log.info(message.toString());
+    }
+
+    /**
+     * 发送季度归因分析报告
+     */
+    private void sendQuarterlyAttributionReport(BrinsonAttributionResult result) {
+        // 季度报告可以更详细
+        log.info("📈 季度归因分析报告已生成");
+        log.info(result.getSummary());
+
+        // 输出各资产类别归因
+        if (result.getAssetClassAttributions() != null) {
+            log.info("各资产类别归因明细:");
+            for (var attribution : result.getAssetClassAttributions()) {
+                if (attribution.getPortfolioWeight().compareTo(new BigDecimal("0.01")) > 0) {
+                    log.info("  {}: 权重 {:.1f}%, 配置效应 {:.2f}%, 选择效应 {:.2f}%",
+                            attribution.getAssetClassName(),
+                            attribution.getPortfolioWeight().multiply(new BigDecimal("100")),
+                            attribution.getAllocationEffect().multiply(new BigDecimal("100")),
+                            attribution.getSelectionEffect().multiply(new BigDecimal("100")));
+                }
+            }
+        }
     }
 
     // ================ 私有辅助方法 ================

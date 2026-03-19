@@ -34,7 +34,7 @@ public class RegularInvestmentPlan {
     /**
      * 定投金额（每次投资的金额）
      */
-    @Column(name = "amount", nullable = false, precision = 16, scale = 2)
+    @Column(name = "amount", nullable = false)
     private BigDecimal amount;
 
     /**
@@ -83,7 +83,7 @@ public class RegularInvestmentPlan {
     /**
      * 手续费率（百分比，如0.15表示0.15%）
      */
-    @Column(name = "fee_rate", precision = 5, scale = 3)
+    @Column(name = "fee_rate")
     private BigDecimal feeRate = BigDecimal.ZERO;
 
     /**
